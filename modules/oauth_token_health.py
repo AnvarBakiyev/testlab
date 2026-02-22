@@ -9,7 +9,7 @@ from pathlib import Path
 from datetime import datetime, timezone
 from core.base import TestResult
 
-DEFAULT_TOKEN_PATH = "/Users/anvarbakiyev/dronor/local_data/personal_agi/google_oauth_token.json"
+DEFAULT_TOKEN_PATH = "/Users/anvarbakiyev/dronor/credentials/google_oauth_token.json"
 WARN_HOURS = 24   # warn if expires within 24h
 
 

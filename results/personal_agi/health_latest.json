@@ -4,8 +4,8 @@
   "project": "personal_agi",
   "status": "pass",
   "summary": "3/3 pass, 0 warn, 0 fail",
-  "started_at": "2026-02-22T18:15:01.040541+00:00",
-  "finished_at": "2026-02-22T18:15:01.111238+00:00",
+  "started_at": "2026-02-22T18:20:01.662546+00:00",
+  "finished_at": "2026-02-22T18:20:01.762688+00:00",
   "tests": [
     {
       "status": "pass",
@@ -14,7 +14,7 @@
       "data": {
         "status_code": 200
       },
-      "duration_ms": 13,
+      "duration_ms": 20,
       "module": "health_check",
       "suite": "health",
       "project": "personal_agi"
@@ -24,7 +24,7 @@
       "msg": "pgrep: 4 процесс(ов) PID=50439",
       "detail": "",
       "data": {},
-      "duration_ms": 50,
+      "duration_ms": 71,
       "module": "process_monitor",
       "suite": "health",
       "project": "personal_agi"
@@ -34,11 +34,11 @@
       "msg": "last=0.0ч назад",
       "detail": "",
       "data": {},
-      "duration_ms": 5,
+      "duration_ms": 7,
       "module": "sqlite_inspector",
       "suite": "health",
       "project": "personal_agi"
     }
   ],
-  "saved_at": "2026-02-22T18:15:01.111611+00:00"
+  "saved_at": "2026-02-22T18:20:01.763152+00:00"
 }
