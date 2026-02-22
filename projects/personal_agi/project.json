@@ -50,8 +50,8 @@
             "input_db": "local_data/personal_agi/events.db",
             "input_query": "SELECT COUNT(*) FROM events WHERE created_at > datetime('now', '-1 hour')",
             "output_db": "local_data/personal_agi/events.db",
-            "output_query": "SELECT COUNT(*) FROM events WHERE status='processed' AND created_at > datetime('now', '-1 hour')",
-            "tolerance_percent": 15
+            "output_query": "SELECT COUNT(*) FROM events WHERE status IN ('processed','noted') AND created_at > datetime('now', '-1 hour')",
+            "tolerance_percent": 5
           }
         },
         {
@@ -73,12 +73,10 @@
         {
           "module": "text_quality",
           "config": {
-            "texts": [
-              "Новое сообщение от Алексея: надо обсудить встречу на следующей неделе",
-              "Задача выполнена успешно",
-              "pending_actions updated at 2024-01-15T10:30:00"
-            ],
-            "check_artifacts": true
+            "db": "local_data/personal_agi/daemon_state.db",
+            "query": "SELECT description FROM daemon_decisions WHERE executed=1 ORDER BY timestamp DESC LIMIT 20",
+            "check_artifacts": true,
+            "min_rows": 3
           }
         }
       ]

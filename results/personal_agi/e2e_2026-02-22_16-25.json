@@ -4,8 +4,8 @@
   "project": "personal_agi",
   "status": "pass",
   "summary": "2/2 pass, 0 warn, 0 fail",
-  "started_at": "2026-02-22T11:28:52.673944+00:00",
-  "finished_at": "2026-02-22T11:28:52.728787+00:00",
+  "started_at": "2026-02-22T11:25:33.827892+00:00",
+  "finished_at": "2026-02-22T11:25:33.881530+00:00",
   "tests": [
     {
       "status": "pass",
@@ -14,21 +14,21 @@
       "data": {
         "status_code": 200
       },
-      "duration_ms": 52,
+      "duration_ms": 51,
       "module": "health_check",
       "suite": "e2e",
       "project": "personal_agi"
     },
     {
       "status": "pass",
-      "msg": "last=0.0ч назад | rows=3696",
+      "msg": "last=0.0ч назад | rows=3689",
       "detail": "",
       "data": {},
-      "duration_ms": 2,
+      "duration_ms": 1,
       "module": "sqlite_inspector",
       "suite": "e2e",
       "project": "personal_agi"
     }
   ],
-  "saved_at": "2026-02-22T11:28:52.728839+00:00"
+  "saved_at": "2026-02-22T11:25:33.881580+00:00"
 }

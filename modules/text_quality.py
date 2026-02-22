@@ -1,85 +1,79 @@
 """
-modules/text_quality.py -- Text artifact detection.
-config: texts (list) | source_db+source_query (SQLite) | source_expert (Dronor)
-        check_artifacts=True
+modules/text_quality.py — Detect LLM artifacts in user-visible text.
+
+Config options:
+  texts: list[str]           — hardcoded test strings (for unit tests)
+  db: str                    — path relative to base_path to SQLite DB
+  query: str                 — SQL query returning text rows (first column used)
+  min_rows: int              — minimum expected rows from DB (default 1)
+  check_artifacts: bool      — check for snake_case, markdown, etc (default True)
 """
-import re
 import sqlite3
-import requests
+import re
 from pathlib import Path
 from core.base import TestResult
 
-# Patterns that indicate technical artifacts leaking into user-facing text.
-# Each tuple: (compiled_regex, human_label)
+
 ARTIFACT_PATTERNS = [
-    (re.compile(r'[{]["\']?\w+["\']?\s*:'), "JSON-object"),
-    (re.compile(r'\b[a-z]{2,}_[a-z]{2,}\b'), "snake_case"),
-    (re.compile(r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}'), "ISO-timestamp"),
-    (re.compile(r'\b(None|null|undefined|NaN)\b'), "code-literal"),
+    (r'\b[a-z]+_[a-z_]+\b', 'snake_case'),
+    (r'^#{1,4} ', 'markdown_header'),
+    (r'\*\*[^*]+\*\*', 'bold_markdown'),
+    (r'^\s*[-*]\s', 'bullet_point'),
+    (r'```', 'code_block'),
 ]
 
 
+def has_artifact(text: str) -> tuple[bool, str]:
+    for pattern, name in ARTIFACT_PATTERNS:
+        if re.search(pattern, text, re.MULTILINE):
+            return True, name
+    return False, ''
+
+
 def run(config: dict) -> TestResult:
-    texts = _collect(config)
-    if not texts:
-        return TestResult(status="warn", msg="No texts to check")
+    base = Path(config.get('_base_path', '/'))
+    texts = config.get('texts', [])
 
-    issues = []
-    if config.get("check_artifacts", True):
-        for i, text in enumerate(texts):
-            for pattern, label in ARTIFACT_PATTERNS:
-                if pattern.search(text):
-                    issues.append(f"[{i}] {label}: {text[:60]}")
-                    break  # one issue per text is enough
-
-    if issues:
-        return TestResult(
-            status="fail",
-            msg=f"{len(issues)} texts with artifacts out of {len(texts)}",
-            detail="\n".join(issues[:5]),
-            data={"total": len(texts), "issues": len(issues)},
-        )
-    return TestResult(
-        status="pass",
-        msg=f"Checked {len(texts)} texts -- clean",
-        data={"total": len(texts)},
-    )
-
-
-def sanitize(text: str) -> str:
-    """Remove common technical artifacts from text."""
-    text = re.sub(r'[{][^}]*}', '', text)
-    text = re.sub(r'\b([a-z]+)_([a-z]+)\b', r'\1 \2', text)
-    text = re.sub(r'\b(None|null|undefined)\b', '', text)
-    text = re.sub(r'  +', ' ', text)
-    return text.strip()
-
-
-def _collect(config: dict) -> list:
-    if "texts" in config:
-        return config["texts"]
-
-    if "source_db" in config and "source_query" in config:
-        base = Path(config.get("_base_path", "/"))
+    # Load from DB if configured
+    if 'db' in config and 'query' in config:
         try:
-            conn = sqlite3.connect(str(base / config["source_db"]))
-            rows = conn.execute(config["source_query"]).fetchall()
+            conn = sqlite3.connect(str(base / config['db']))
+            rows = conn.execute(config['query']).fetchall()
             conn.close()
-            return [r[0] for r in rows if r[0]]
-        except Exception:
-            return []
+            texts = [row[0] for row in rows if row[0]]
+        except Exception as e:
+            return TestResult(status='fail', msg=f'DB error: {e}')
 
-    if "source_expert" in config:
-        try:
-            resp = requests.post(
-                "http://localhost:9100/api/expert/run",
-                json={"expert_name": config["source_expert"],
-                      "params": config.get("source_expert_params", {})},
-                timeout=15,
-            ).json()
-            data = resp.get("result", {})
-            return data.get("texts", []) if isinstance(data, dict) else []
-        except Exception:
-            return []
+        min_rows = config.get('min_rows', 1)
+        if len(texts) < min_rows:
+            return TestResult(
+                status='warn',
+                msg=f'Только {len(texts)} строк в БД (ожидалось {min_rows}+)',
+            )
 
-    return []
+    if not texts:
+        return TestResult(status='warn', msg='Нет текстов для проверки')
+
+    if not config.get('check_artifacts', True):
+        return TestResult(status='pass', msg=f'{len(texts)} текстов проверено (артефакты отключены)')
+
+    bad = []
+    for text in texts:
+        found, artifact_type = has_artifact(text)
+        if found:
+            bad.append((text[:60], artifact_type))
+
+    if bad:
+        examples = '; '.join(f'{t!r}({a})' for t, a in bad[:3])
+        return TestResult(
+            status='fail',
+            msg=f'{len(bad)} texts with artifacts out of {len(texts)}',
+            detail=examples,
+            data={'total': len(texts), 'with_artifacts': len(bad), 'examples': bad[:5]},
+        )
+
+    return TestResult(
+        status='pass',
+        msg=f'Все {len(texts)} текстов чисты',
+        data={'total': len(texts)},
+    )
