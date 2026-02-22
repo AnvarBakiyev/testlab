@@ -1,80 +1,54 @@
 """
-Audit: Pending Actions — duplicate detection.
-Checks for actions with same sender+action_type in pending table.
-Also detects same source_event_id appearing multiple times.
+pending_duplicates_deep — duplicate action detection by sender+type and source_event_id.
 """
-from dataclasses import dataclass, field
-from typing import Any
 import sqlite3, json
-from pathlib import Path
 from collections import defaultdict
-
-@dataclass
-class ModuleResult:
-    status: str
-    msg: str
-    details: Any = None
+from core.base import TestResult
 
 DB = '/Users/anvarbakiyev/dronor/local_data/personal_agi/pending_actions.db'
 
-def run(config: dict) -> ModuleResult:
+def run(config: dict) -> TestResult:
     conn = sqlite3.connect(DB)
     conn.row_factory = sqlite3.Row
-
-    rows = conn.execute("""
-        SELECT id, action_type, description, cars_score, created_at,
-               source_event_id, params, status
-        FROM pending
-        WHERE status = 'pending'
-        ORDER BY created_at
-    """).fetchall()
+    rows = conn.execute(
+        "SELECT id, action_type, description, params, source_event_id "
+        "FROM pending WHERE status = 'pending'"
+    ).fetchall()
     conn.close()
 
-    # Group by (action_type + sender extracted from params/description)
     sender_groups = defaultdict(list)
     event_groups = defaultdict(list)
-
     for r in rows:
-        # Extract sender from params JSON
         sender = 'unknown'
         try:
             p = json.loads(r['params'] or '{}')
-            sender = p.get('sender') or p.get('from') or p.get('to') or p.get('chat_id', 'unknown')
-        except:
+            sender = p.get('sender') or p.get('from') or p.get('chat_id', 'unknown')
+        except Exception:
             pass
-
-        key = f"{r['action_type']}::{sender}"
-        sender_groups[key].append(dict(r))
-
+        sender_groups[f"{r['action_type']}::{sender}"].append(dict(r))
         if r['source_event_id']:
             event_groups[r['source_event_id']].append(dict(r))
 
-    # Find duplicates
     sender_dupes = {k: v for k, v in sender_groups.items() if len(v) > 1}
-    event_dupes = {k: v for k, v in event_groups.items() if len(v) > 1}
+    event_dupes  = {k: v for k, v in event_groups.items()  if len(v) > 1}
+    n_sender = sum(len(v) - 1 for v in sender_dupes.values())
+    n_event  = sum(len(v) - 1 for v in event_dupes.values())
 
-    total_dupes = sum(len(v) - 1 for v in sender_dupes.values())
-    total_event_dupes = sum(len(v) - 1 for v in event_dupes.values())
+    examples = []
+    for key, items in list(sender_dupes.items())[:3]:
+        examples.append(f"{key}: {[i['id'] for i in items]}")
 
-    details = {
+    data = {
         'total_pending': len(rows),
-        'sender_duplicate_groups': len(sender_dupes),
-        'extra_actions_from_sender_dupes': total_dupes,
-        'event_id_duplicate_groups': len(event_dupes),
-        'examples': []
+        'sender_dupe_groups': len(sender_dupes),
+        'event_dupe_groups': len(event_dupes),
+        'extra_actions': n_sender + n_event,
     }
+    detail = '; '.join(examples)
 
-    for key, items in list(sender_dupes.items())[:5]:
-        details['examples'].append({
-            'key': key,
-            'count': len(items),
-            'ids': [i['id'] for i in items],
-            'descriptions': [i['description'][:80] for i in items]
-        })
-
-    total = total_dupes + total_event_dupes
+    total = n_sender + n_event
     if total > 10:
-        return ModuleResult('fail', f'{total_dupes} duplicate actions by sender, {total_event_dupes} by event_id', details)
+        return TestResult('fail', f'{n_sender} duplicate by sender, {n_event} by event_id', detail, data)
     if total > 0:
-        return ModuleResult('warn', f'{total_dupes} duplicate actions by sender, {total_event_dupes} by event_id', details)
-    return ModuleResult('pass', f'No duplicates in {len(rows)} pending actions', details)
+        return TestResult('warn', f'{n_sender} duplicate by sender, {n_event} by event_id', detail, data)
+    return TestResult('pass', f'No duplicates in {len(rows)} pending actions', '', data)

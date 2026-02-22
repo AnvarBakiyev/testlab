@@ -1,85 +1,60 @@
 """
-Audit: Draft quality in pending actions.
-Checks for empty drafts, too-short drafts, wrong language, template leftovers.
+draft_quality_audit — checks draft actions for empty body, placeholders, too-short text.
 """
-from dataclasses import dataclass
-from typing import Any
 import sqlite3, json, re
-
-@dataclass
-class ModuleResult:
-    status: str
-    msg: str
-    details: Any = None
+from core.base import TestResult
 
 DB = '/Users/anvarbakiyev/dronor/local_data/personal_agi/pending_actions.db'
+DRAFT_TYPES = {'draft_email', 'email_response', 'draft_whatsapp', 'telegram_reply', 'whatsapp_response'}
+DRAFT_KEYS = ['body', 'draft', 'message', 'text', 'reply']
+PLACEHOLDER_RE = re.compile(r'\[.*?\]|\{\{.*?\}\}')
 
-def run(config: dict) -> ModuleResult:
+def run(config: dict) -> TestResult:
     conn = sqlite3.connect(DB)
     conn.row_factory = sqlite3.Row
-    rows = conn.execute("""
-        SELECT id, action_type, description, params, cars_score
-        FROM pending WHERE status = 'pending'
-    """).fetchall()
+    rows = conn.execute(
+        "SELECT id, action_type, description, params FROM pending WHERE status = 'pending'"
+    ).fetchall()
     conn.close()
 
-    empty, too_short, has_placeholders, no_draft = [], [], [], []
-    PLACEHOLDER_RE = re.compile(r'\[.*?\]|\{\{.*?\}\}|<.*?>')
-    DRAFT_KEYS = ['body', 'draft', 'message', 'text', 'reply']
-    DRAFT_ACTION_TYPES = ['draft_email', 'email_response', 'draft_whatsapp',
-                          'telegram_reply', 'whatsapp_response']
+    draft_rows = [r for r in rows if r['action_type'] in DRAFT_TYPES]
+    no_body, empty, too_short, placeholders = [], [], [], []
 
-    for r in rows:
-        if r['action_type'] not in DRAFT_ACTION_TYPES:
-            continue
+    for r in draft_rows:
         try:
             p = json.loads(r['params'] or '{}')
-        except:
+        except Exception:
             p = {}
+        draft = next((str(p[k]) for k in DRAFT_KEYS if k in p and p[k]), None)
 
-        draft = None
-        for key in DRAFT_KEYS:
-            if key in p and p[key]:
-                draft = str(p[key])
-                break
-
-        entry = {'id': r['id'], 'action_type': r['action_type'],
-                 'description': r['description'][:80]}
-
+        entry = f"{r['id']} ({r['action_type']})"
         if draft is None:
-            no_draft.append(entry)
-        elif len(draft.strip()) == 0:
+            no_body.append(entry)
+        elif not draft.strip():
             empty.append(entry)
         elif len(draft.strip()) < 20:
-            entry['draft'] = draft[:100]
             too_short.append(entry)
         elif PLACEHOLDER_RE.search(draft):
-            entry['draft'] = draft[:150]
-            has_placeholders.append(entry)
+            placeholders.append(entry)
 
-    draft_actions = [r for r in rows if r['action_type'] in DRAFT_ACTION_TYPES]
-    issues = []
-    if no_draft:
-        issues.append(f'{len(no_draft)} draft actions with no body')
-    if empty:
-        issues.append(f'{len(empty)} empty drafts')
-    if has_placeholders:
-        issues.append(f'{len(has_placeholders)} drafts with unfilled placeholders')
-    if too_short:
-        issues.append(f'{len(too_short)} drafts too short (<20 chars)')
-
-    details = {
-        'total_draft_actions': len(draft_actions),
-        'no_draft': len(no_draft),
-        'empty_draft': len(empty),
+    data = {
+        'total_draft_actions': len(draft_rows),
+        'no_body': len(no_body),
+        'empty': len(empty),
         'too_short': len(too_short),
-        'has_placeholders': len(has_placeholders),
-        'examples_no_draft': no_draft[:3],
-        'examples_placeholders': has_placeholders[:3],
+        'placeholders': len(placeholders),
     }
 
-    if empty or has_placeholders or no_draft:
-        return ModuleResult('fail', ' | '.join(issues), details)
-    if too_short:
-        return ModuleResult('warn', ' | '.join(issues), details)
-    return ModuleResult('pass', f'All {len(draft_actions)} drafts look complete', details)
+    issues, crit = [], []
+    if no_body:      crit.append(f'{len(no_body)} drafts with no body')
+    if empty:        crit.append(f'{len(empty)} empty drafts')
+    if placeholders: crit.append(f'{len(placeholders)} drafts with unfilled placeholders')
+    if too_short:    issues.append(f'{len(too_short)} drafts too short (<20 chars)')
+
+    all_issues = crit + issues
+    detail = '; '.join(all_issues)
+    if crit:
+        return TestResult('fail', ' | '.join(crit), detail, data)
+    if issues:
+        return TestResult('warn', ' | '.join(issues), detail, data)
+    return TestResult('pass', f'All {len(draft_rows)} drafts look complete', '', data)
