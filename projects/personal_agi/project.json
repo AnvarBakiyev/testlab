@@ -63,20 +63,65 @@
             "timestamp_col": "sent_at",
             "window_hours": 24
           }
+        },
+        {
+          "module": "canary_check",
+          "config": {
+            "events_db_path": "/Users/anvarbakiyev/dronor/local_data/personal_agi/events.db",
+            "max_age_minutes": 15
+          }
+        },
+        {
+          "module": "dead_letter_check",
+          "config": {
+            "state_db_path": "/Users/anvarbakiyev/dronor/local_data/personal_agi/daemon_state.db",
+            "window_hours": 24,
+            "max_allowed": 5
+          }
+        },
+        {
+          "module": "ooda_phase_balance",
+          "config": {
+            "state_db_path": "/Users/anvarbakiyev/dronor/local_data/personal_agi/daemon_state.db",
+            "lookback_runs": 20,
+            "min_action_ratio": 0.01
+          }
         }
       ]
     },
     "ux_quality": {
       "name": "UX & Text Quality",
-      "schedule": "on_demand",
+      "schedule": "every_hour",
       "modules": [
         {
           "module": "text_quality",
           "config": {
             "db": "local_data/personal_agi/daemon_state.db",
-            "query": "SELECT description FROM daemon_decisions WHERE executed=1 ORDER BY timestamp DESC LIMIT 20",
-            "check_artifacts": true,
-            "min_rows": 3
+            "query": "SELECT description FROM daemon_decisions ORDER BY timestamp DESC LIMIT 30",
+            "min_rows": 3,
+            "sample_size": 30,
+            "flesch_min": 40,
+            "max_notification_length": 500
+          }
+        },
+        {
+          "module": "telegram_callback_check",
+          "config": {
+            "pending_db_path": "/Users/anvarbakiyev/dronor/local_data/personal_agi/pending_actions.db",
+            "max_pending_age_hours": 72
+          }
+        },
+        {
+          "module": "command_center_api_check",
+          "config": {
+            "cc_path": "/Users/anvarbakiyev/dronor/apps/agi_command_center.py",
+            "min_persons": 100,
+            "methods": [
+              "get_overview",
+              "get_pending_actions",
+              "get_sync_state",
+              "dronor_health"
+            ]
           }
         }
       ]
