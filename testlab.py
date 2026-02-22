@@ -198,7 +198,37 @@ def health():
     return jsonify({"status": "ok", "service": "universal-testlab"})
 
 
+@app.route("/api/testlab/run_module", methods=["POST"])
+def run_module_direct():
+    """
+    Universal endpoint for Dronor experts.
+    Body: {"module": "module_name", "params": {...}}
+    Returns: TestResult as JSON
+    """
+    from core.runner import _run_module
+    body = request.get_json(force=True, silent=True) or {}
+    module_name = body.get("module", "").strip()
+    params = body.get("params", {})
+
+    if not module_name:
+        return jsonify({"status": "fail", "msg": "'module' field is required", "detail": "", "data": {}}), 400
+
+    # Inject base_path so modules can use it if needed
+    params["_base_path"] = str(Path(".").resolve())
+
+    result = _run_module(module_name, params)
+    return jsonify({
+        "status": result.status,
+        "msg": result.msg,
+        "detail": result.detail,
+        "duration_ms": result.duration_ms,
+        "data": getattr(result, "data", {}),
+    })
+
+
 if __name__ == "__main__":
     port = int(os.environ.get("TESTLAB_PORT", 9200))
     print(f"Universal TestLab running on http://localhost:{port}")
     app.run(host="0.0.0.0", port=port, debug=False)
+
+

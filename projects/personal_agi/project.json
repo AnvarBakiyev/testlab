@@ -225,6 +225,59 @@
           }
         }
       ]
+    },
+    "cc_memory_health": {
+      "name": "CC & Memory Health",
+      "modules": [
+        {
+          "module": "memory_block_freshness",
+          "config": {
+            "warn_days": 7,
+            "fail_days": 21
+          }
+        },
+        {
+          "module": "memory_writers_active",
+          "config": {
+            "max_hours": 48
+          }
+        },
+        {
+          "module": "kg_freshness",
+          "config": {
+            "warn_days": 3,
+            "fail_days": 7
+          }
+        },
+        {
+          "module": "cc_memory_renderer",
+          "config": {}
+        },
+        {
+          "module": "cc_log_leakage",
+          "config": {
+            "sample_size": 50
+          }
+        },
+        {
+          "module": "cc_pending_duplicates",
+          "config": {
+            "max_per_contact": 2
+          }
+        },
+        {
+          "module": "pending_text_quality",
+          "config": {
+            "sample_size": 20
+          }
+        },
+        {
+          "module": "pending_buttons_check",
+          "config": {
+            "sample_size": 30
+          }
+        }
+      ]
     }
   },
   "_base_path_note": "Set env var TESTLAB_BASE_PATH_PERSONAL_AGI or TESTLAB_BASE_PATH to override",
