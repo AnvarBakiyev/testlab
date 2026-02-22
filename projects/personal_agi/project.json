@@ -166,5 +166,9 @@
     }
   },
   "_base_path_note": "Set env var TESTLAB_BASE_PATH_PERSONAL_AGI or TESTLAB_BASE_PATH to override",
-  "wiki_path": "personal-agi/status.md"
+  "wiki_path": "personal-agi/status.md",
+  "notifications": {
+    "telegram_chat_id": "958418",
+    "token_file": "/Users/anvarbakiyev/Desktop/credentials/telegram_token.txt"
+  }
 }

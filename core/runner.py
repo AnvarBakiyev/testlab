@@ -8,6 +8,7 @@ import traceback
 from datetime import datetime, timezone
 from pathlib import Path
 from core.base import TestResult, SuiteResult
+from core import notifier
 
 
 def run_suite(project_config: dict, suite_id: str) -> SuiteResult:
@@ -29,6 +30,19 @@ def run_suite(project_config: dict, suite_id: str) -> SuiteResult:
         test.project = project_id
         result.tests.append(test)
     result.finished_at = datetime.now(timezone.utc).isoformat()
+
+    # Алерт в Telegram если есть настройка и пали тесты
+    notif_cfg = project_config.get("notifications", {})
+    if notif_cfg.get("telegram_chat_id"):
+        notifier.notify_if_needed(
+            result=result,
+            token_file=notif_cfg.get(
+                "token_file",
+                str(Path.home() / "Desktop/credentials/telegram_token.txt")
+            ),
+            chat_id=str(notif_cfg["telegram_chat_id"]),
+        )
+
     return result
 
 
