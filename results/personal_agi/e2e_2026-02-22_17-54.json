@@ -1,0 +1,58 @@
+{
+  "suite_id": "e2e",
+  "suite_name": "E2E Scenarios",
+  "project": "personal_agi",
+  "status": "fail",
+  "summary": "3/4 pass, 0 warn, 1 fail",
+  "started_at": "2026-02-22T12:53:23.221873+00:00",
+  "finished_at": "2026-02-22T12:54:33.825088+00:00",
+  "tests": [
+    {
+      "status": "pass",
+      "msg": "HTTP 200 — http://localhost:9100/api/health",
+      "detail": "",
+      "data": {
+        "status_code": 200
+      },
+      "duration_ms": 5,
+      "module": "health_check",
+      "suite": "e2e",
+      "project": "personal_agi"
+    },
+    {
+      "status": "pass",
+      "msg": "last=0.0ч назад | rows=3865",
+      "detail": "",
+      "data": {},
+      "duration_ms": 0,
+      "module": "sqlite_inspector",
+      "suite": "e2e",
+      "project": "personal_agi"
+    },
+    {
+      "status": "fail",
+      "msg": "testlab_telegram_ping: timeout 30s",
+      "detail": "",
+      "data": {},
+      "duration_ms": 30003,
+      "module": "dronor_expert",
+      "suite": "e2e",
+      "project": "personal_agi"
+    },
+    {
+      "status": "pass",
+      "msg": "testlab_kg_health: OK",
+      "detail": "",
+      "data": {
+        "result": {
+          "raw": "{'status': 'warn', 'msg': 'Person: 1886 | Org: 297 | Comm: 5926 | Email-дублей: 1', 'issues': ['Дублей по email: 1'], 'persons': 1886, 'orgs': 297, 'comms': 5926, 'email_dupes': 1}"
+        }
+      },
+      "duration_ms": 40592,
+      "module": "dronor_expert",
+      "suite": "e2e",
+      "project": "personal_agi"
+    }
+  ],
+  "saved_at": "2026-02-22T12:54:33.839780+00:00"
+}

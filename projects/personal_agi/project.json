@@ -99,7 +99,20 @@
             "table": "daemon_runs",
             "timestamp_col": "started_at",
             "freshness_hours": 1,
-            "min_rows": 1
+            "min_rows": 100
+          }
+        },
+        {
+          "module": "kg_health",
+          "config": {
+            "min_persons": 100,
+            "min_orgs": 10
+          }
+        },
+        {
+          "module": "telegram_ping",
+          "config": {
+            "token_file": "Desktop/credentials/telegram_token.txt"
           }
         }
       ]

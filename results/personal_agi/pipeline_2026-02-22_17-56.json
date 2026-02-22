@@ -4,26 +4,26 @@
   "project": "personal_agi",
   "status": "pass",
   "summary": "3/3 pass, 0 warn, 0 fail",
-  "started_at": "2026-02-22T13:13:19.268690+00:00",
-  "finished_at": "2026-02-22T13:13:19.270207+00:00",
+  "started_at": "2026-02-22T12:56:39.134421+00:00",
+  "finished_at": "2026-02-22T12:56:39.138000+00:00",
   "tests": [
     {
       "status": "pass",
       "msg": "last=-4.9ч назад",
       "detail": "",
       "data": {},
-      "duration_ms": 0,
+      "duration_ms": 2,
       "module": "sqlite_inspector",
       "suite": "pipeline",
       "project": "personal_agi"
     },
     {
       "status": "pass",
-      "msg": "Все 602 записей обработаны",
+      "msg": "Все 595 записей обработаны",
       "detail": "",
       "data": {
-        "input": 602,
-        "output": 602
+        "input": 595,
+        "output": 595
       },
       "duration_ms": 0,
       "module": "pipeline_completeness",
@@ -44,5 +44,5 @@
       "project": "personal_agi"
     }
   ],
-  "saved_at": "2026-02-22T13:13:19.381481+00:00"
+  "saved_at": "2026-02-22T12:56:39.138042+00:00"
 }

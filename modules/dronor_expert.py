@@ -32,6 +32,18 @@ def run(config: dict) -> TestResult:
             result = json.loads(result)
         except Exception:
             result = {"raw": result}
+    # Проверка поля status (если не указан accept_status)
+    accept_status = config.get("accept_status", ["pass", "warn"])
+    expert_status = result.get("status") if isinstance(result, dict) else None
+    if expert_status is not None and expert_status not in accept_status:
+        expert_msg = result.get("msg", "") if isinstance(result, dict) else ""
+        return TestResult(
+            status="fail",
+            msg=f"{expert}: status={expert_status!r} — {expert_msg}",
+            detail=result.get("detail", "")[:300] if isinstance(result, dict) else "",
+            data={"result": result}
+        )
+
     failures = []
     for k, v in expect.items():
         actual = result.get(k) if isinstance(result, dict) else None

@@ -1,0 +1,62 @@
+{
+  "suite_id": "e2e",
+  "suite_name": "E2E Scenarios",
+  "project": "personal_agi",
+  "status": "pass",
+  "summary": "4/4 pass, 0 warn, 0 fail",
+  "started_at": "2026-02-22T13:07:56.628952+00:00",
+  "finished_at": "2026-02-22T13:09:06.944958+00:00",
+  "tests": [
+    {
+      "status": "pass",
+      "msg": "HTTP 200 — http://localhost:9100/api/health",
+      "detail": "",
+      "data": {
+        "status_code": 200
+      },
+      "duration_ms": 50,
+      "module": "health_check",
+      "suite": "e2e",
+      "project": "personal_agi"
+    },
+    {
+      "status": "pass",
+      "msg": "last=0.0ч назад | rows=3896",
+      "detail": "",
+      "data": {},
+      "duration_ms": 1,
+      "module": "sqlite_inspector",
+      "suite": "e2e",
+      "project": "personal_agi"
+    },
+    {
+      "status": "pass",
+      "msg": "testlab_kg_health: OK",
+      "detail": "",
+      "data": {
+        "result": {
+          "raw": "{'status': 'fail', 'msg': 'Mac timeout при запросе KG'}"
+        }
+      },
+      "duration_ms": 60865,
+      "module": "dronor_expert",
+      "suite": "e2e",
+      "project": "personal_agi"
+    },
+    {
+      "status": "pass",
+      "msg": "testlab_telegram_ping: OK",
+      "detail": "",
+      "data": {
+        "result": {
+          "raw": "{'status': 'pass', 'msg': 'Доставлено (msg_id=55)', 'message_id': 55, 'text_sent': '[TESTLAB] ping 1771765737'}"
+        }
+      },
+      "duration_ms": 9397,
+      "module": "dronor_expert",
+      "suite": "e2e",
+      "project": "personal_agi"
+    }
+  ],
+  "saved_at": "2026-02-22T13:09:06.945099+00:00"
+}
