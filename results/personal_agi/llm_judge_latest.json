@@ -1,0 +1,29 @@
+{
+  "suite_id": "llm_judge",
+  "suite_name": "LLM Decision Judge",
+  "project": "personal_agi",
+  "status": "warn",
+  "summary": "0/1 pass, 1 warn, 0 fail",
+  "started_at": "2026-02-22T15:10:43.197113+00:00",
+  "finished_at": "2026-02-22T15:10:47.527519+00:00",
+  "tests": [
+    {
+      "status": "warn",
+      "msg": "LLM judge: 0 bad, 4 warn / 7 — Pattern of aggressive dismissals with very high confidence (0.98-0.99) raises co",
+      "detail": "",
+      "data": {
+        "total": 7,
+        "ok": 3,
+        "warn": 4,
+        "bad": 0,
+        "model": "claude-haiku-4-5-20251001",
+        "summary": "Pattern of aggressive dismissals with very high confidence (0.98-0.99) raises concerns about whether context-relevant technical and automotive content is being inappropriately filtered, particularly in topic-specific channels."
+      },
+      "duration_ms": 4330,
+      "module": "llm_judge",
+      "suite": "llm_judge",
+      "project": "personal_agi"
+    }
+  ],
+  "saved_at": "2026-02-22T15:10:47.527971+00:00"
+}
