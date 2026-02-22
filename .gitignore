@@ -20,3 +20,7 @@ build/
 # Local env overrides (never commit)
 .env
 *.local.json
+
+# Runtime output - do not commit
+results/
+wiki/
