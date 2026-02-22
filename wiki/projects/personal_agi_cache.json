@@ -1,0 +1,92 @@
+{
+  "health": {
+    "suite_id": "health",
+    "suite_name": "System Health",
+    "status": "pass",
+    "summary": "3/3 pass, 0 warn, 0 fail",
+    "finished_at": "2026-02-22T11:43:44.370655+00:00",
+    "tests": [
+      {
+        "module": "health_check",
+        "status": "pass",
+        "msg": "HTTP 200 — http://localhost:9100/api/health",
+        "detail": ""
+      },
+      {
+        "module": "process_monitor",
+        "status": "pass",
+        "msg": "pgrep: 4 процесс(ов) PID=13546",
+        "detail": ""
+      },
+      {
+        "module": "sqlite_inspector",
+        "status": "pass",
+        "msg": "last=0.0ч назад",
+        "detail": ""
+      }
+    ]
+  },
+  "pipeline": {
+    "suite_id": "pipeline",
+    "suite_name": "Pipeline Integrity",
+    "status": "pass",
+    "summary": "3/3 pass, 0 warn, 0 fail",
+    "finished_at": "2026-02-22T11:43:44.416043+00:00",
+    "tests": [
+      {
+        "module": "sqlite_inspector",
+        "status": "pass",
+        "msg": "last=-4.9ч назад",
+        "detail": ""
+      },
+      {
+        "module": "pipeline_completeness",
+        "status": "pass",
+        "msg": "Все 547 записей обработаны",
+        "detail": ""
+      },
+      {
+        "module": "idempotency",
+        "status": "pass",
+        "msg": "За 24ч: 0 уникальных уведомлений",
+        "detail": ""
+      }
+    ]
+  },
+  "ux_quality": {
+    "suite_id": "ux_quality",
+    "suite_name": "UX & Text Quality",
+    "status": "pass",
+    "summary": "1/1 pass, 0 warn, 0 fail",
+    "finished_at": "2026-02-22T11:43:44.454327+00:00",
+    "tests": [
+      {
+        "module": "text_quality",
+        "status": "pass",
+        "msg": "Все 20 текстов чисты",
+        "detail": ""
+      }
+    ]
+  },
+  "e2e": {
+    "suite_id": "e2e",
+    "suite_name": "E2E Scenarios",
+    "status": "pass",
+    "summary": "2/2 pass, 0 warn, 0 fail",
+    "finished_at": "2026-02-22T11:43:44.537872+00:00",
+    "tests": [
+      {
+        "module": "health_check",
+        "status": "pass",
+        "msg": "HTTP 200 — http://localhost:9100/api/health",
+        "detail": ""
+      },
+      {
+        "module": "sqlite_inspector",
+        "status": "pass",
+        "msg": "last=0.0ч назад | rows=3728",
+        "detail": ""
+      }
+    ]
+  }
+}
