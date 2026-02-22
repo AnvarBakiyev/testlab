@@ -321,6 +321,147 @@ def generate_report(project_id: str):
     )
 
 
+
+
+@app.route("/api/testlab/audit/run", methods=["POST", "GET"])
+def run_audit_report():
+    """Run all audit modules and return ready HTML report (same as run_audit.py)."""
+    import importlib.util
+    import json as _json
+    from datetime import datetime
+
+    AUDIT_SUITE = [
+        ("pending_duplicates_deep",  "Pending: Duplicate Actions",    "Pending Actions"),
+        ("pending_age_audit",        "Pending: Stale Actions (Age)",  "Pending Actions"),
+        ("pending_orphans_audit",    "Pending: Data Integrity",       "Pending Actions"),
+        ("draft_quality_audit",      "Pending: Draft Quality",        "Pending Actions"),
+        ("cars_distribution_audit",  "CARS: Score Distribution",      "CARS & Feedback"),
+        ("feedback_loop_audit",      "CARS: Feedback Loop",           "CARS & Feedback"),
+        ("events_pipeline_audit",    "Events: Pipeline Health",       "Pipeline & Events"),
+        ("daemon_health_audit",      "Daemon: Health & Throughput",   "Daemon"),
+        ("auto_reply_audit",         "Auto-Reply: System Health",     "System"),
+        ("knowledge_db_audit",       "Knowledge: DB Integrity",       "System"),
+        ("memory_block_freshness",   "Memory: Block Freshness",       "Memory"),
+        ("memory_writers_active",    "Memory: Writers Active",        "Memory"),
+        ("update_kg_wiring",         "Memory: KG Wiring",             "Memory"),
+        ("connector_config_check",   "Connectors: Config Check",      "Connectors"),
+        ("daemon_activity_check",    "Daemon: Activity Check",        "Daemon"),
+    ]
+
+    STATUS_COLOR = {"pass": "#22c55e", "fail": "#ef4444", "warn": "#f59e0b",
+                    "error": "#a855f7", "skip": "#6b7280"}
+    STATUS_ICON  = {"pass": "✅", "fail": "❌", "warn": "⚠️",
+                    "error": "💥", "skip": "⏭️"}
+
+    results_by_group = {}
+    summary = {"total": 0, "pass": 0, "fail": 0, "warn": 0, "error": 0, "skip": 0}
+
+    for name, label, group in AUDIT_SUITE:
+        mod_path = TESTLAB_ROOT / "modules" / f"{name}.py"
+        try:
+            if not mod_path.exists():
+                status, msg, data = "skip", f"Module not found: {name}.py", {}
+            else:
+                spec = importlib.util.spec_from_file_location(name, mod_path)
+                mod  = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(mod)
+                r    = mod.run({})
+                status = r.status
+                msg    = r.msg
+                data   = getattr(r, "data", {})
+        except Exception as e:
+            status, msg, data = "error", str(e), {}
+
+        results_by_group.setdefault(group, []).append((label, name, status, msg, data))
+        summary["total"] += 1
+        summary[status]   = summary.get(status, 0) + 1
+
+    # Build HTML
+    now   = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    fails = summary["fail"] + summary["error"]
+    overall       = "HEALTHY" if fails == 0 else ("DEGRADED" if fails <= 3 else "CRITICAL")
+    overall_color = "#22c55e" if overall == "HEALTHY" else ("#f59e0b" if overall == "DEGRADED" else "#ef4444")
+
+    groups_html = ""
+    for group, items in results_by_group.items():
+        rows = ""
+        for label, name, status, msg, data in items:
+            sc   = STATUS_COLOR.get(status, "#6b7280")
+            icon = STATUS_ICON.get(status, "?")
+
+            data_rows = ""
+            if data:
+                for k, v in data.items():
+                    if v is None or v == [] or v == {}: continue
+                    val = _json.dumps(v, ensure_ascii=False)[:200] if isinstance(v, (dict, list)) else str(v)
+                    data_rows += f"<tr><td style='padding:3px 8px;color:#94a3b8;font-size:12px'>{k}</td><td style='padding:3px 8px;font-size:12px;word-break:break-all'>{val}</td></tr>"
+            data_html = f"<table style='width:100%;border-collapse:collapse;margin-top:6px'>{data_rows}</table>" if data_rows else ""
+
+            rows += f"""<tr style='border-bottom:1px solid #1e293b'>
+              <td style='padding:12px 16px;width:40px;text-align:center;font-size:18px'>{icon}</td>
+              <td style='padding:12px 16px'>
+                <div style='font-weight:600;color:#e2e8f0'>{label}</div>
+                <div style='color:{sc};font-size:13px;margin-top:2px'>{msg}</div>
+                {data_html}
+              </td>
+              <td style='padding:12px 16px;width:80px;text-align:center'>
+                <span style='background:{sc}22;color:{sc};padding:3px 10px;
+                  border-radius:12px;font-size:12px;font-weight:700;border:1px solid {sc}44'>
+                  {status.upper()}
+                </span>
+              </td>
+            </tr>"""
+
+        groups_html += f"""<div style='margin-bottom:32px'>
+          <h2 style='color:#94a3b8;font-size:13px;font-weight:700;letter-spacing:2px;
+            text-transform:uppercase;margin-bottom:12px;padding-left:4px'>{group}</h2>
+          <div style='background:#0f172a;border:1px solid #1e293b;border-radius:12px;overflow:hidden'>
+            <table style='width:100%;border-collapse:collapse'>{rows}</table>
+          </div></div>"""
+
+    html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AGI Full Audit</title>
+<style>
+  * {{ box-sizing: border-box; margin: 0; padding: 0; }}
+  body {{ background: #020817; color: #e2e8f0;
+    font-family: 'SF Mono', 'Fira Code', monospace; min-height:100vh; padding:40px 24px; }}
+  .container {{ max-width: 900px; margin: 0 auto; }}
+  .badge {{ display:inline-block; padding:6px 18px; border-radius:999px; font-size:13px;
+    font-weight:800; letter-spacing:1px; background:{overall_color}22; color:{overall_color};
+    border:1px solid {overall_color}55; margin-bottom:16px; }}
+  .stats {{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:40px; }}
+  .stat {{ background:#0f172a; border:1px solid #1e293b; border-radius:10px;
+    padding:16px; text-align:center; }}
+  .stat-num {{ font-size:28px; font-weight:800; }}
+  .stat-label {{ font-size:11px; color:#64748b; text-transform:uppercase; letter-spacing:1px; margin-top:4px; }}
+</style>
+</head>
+<body>
+<div class="container">
+  <div style="margin-bottom:40px">
+    <div class="badge">{overall}</div>
+    <div style="font-size:28px;font-weight:800;color:#f1f5f9;margin-bottom:4px">AGI Command Center</div>
+    <div style="font-size:20px;font-weight:800;color:#64748b;margin-bottom:8px">Full System Audit</div>
+    <div style="color:#475569;font-size:13px">Generated: {now}</div>
+  </div>
+  <div class="stats">
+    <div class="stat"><div class="stat-num" style="color:#e2e8f0">{summary['total']}</div><div class="stat-label">Total Checks</div></div>
+    <div class="stat"><div class="stat-num" style="color:#22c55e">{summary['pass']}</div><div class="stat-label">Passed</div></div>
+    <div class="stat"><div class="stat-num" style="color:#f59e0b">{summary['warn']}</div><div class="stat-label">Warnings</div></div>
+    <div class="stat"><div class="stat-num" style="color:#ef4444">{fails}</div><div class="stat-label">Failed</div></div>
+  </div>
+  {groups_html}
+  <div style="text-align:center;color:#1e293b;font-size:11px;margin-top:40px">AGI TestLab v2.0</div>
+</div>
+</body></html>"""
+
+    from flask import Response
+    return Response(html, mimetype="text/html")
+
 if __name__ == "__main__":
     port = int(os.environ.get("TESTLAB_PORT", 9200))
     print(f"Universal TestLab running on http://localhost:{port}")
