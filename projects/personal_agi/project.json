@@ -103,6 +103,53 @@
           }
         }
       ]
+    },
+    "monitoring": {
+      "name": "Monitoring",
+      "schedule": "every_5min",
+      "modules": [
+        {
+          "module": "watcher_freshness",
+          "config": {
+            "files": [
+              {
+                "path": "local_data/personal_agi/gmail_sync_state.json",
+                "label": "Gmail",
+                "freshness_hours": 2
+              },
+              {
+                "path": "local_data/personal_agi/gdrive_sync_state.json",
+                "label": "GDrive",
+                "freshness_hours": 2
+              }
+            ]
+          }
+        },
+        {
+          "module": "daemon_errors",
+          "config": {
+            "log_file": "logs/agi_daemon.log",
+            "tail_lines": 200,
+            "max_errors": 3
+          }
+        },
+        {
+          "module": "cars_activity",
+          "config": {
+            "db": "local_data/personal_agi/daemon_state.db",
+            "window_hours": 24,
+            "min_decisions": 1
+          }
+        },
+        {
+          "module": "pending_aging",
+          "config": {
+            "db": "local_data/personal_agi/pending_actions.db",
+            "stale_hours": 48,
+            "max_stale": 0
+          }
+        }
+      ]
     }
   },
   "_base_path_note": "Set env var TESTLAB_BASE_PATH_PERSONAL_AGI or TESTLAB_BASE_PATH to override",

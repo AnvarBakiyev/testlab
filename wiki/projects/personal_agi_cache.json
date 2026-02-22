@@ -4,7 +4,7 @@
     "suite_name": "System Health",
     "status": "pass",
     "summary": "3/3 pass, 0 warn, 0 fail",
-    "finished_at": "2026-02-22T11:43:44.370655+00:00",
+    "finished_at": "2026-02-22T12:30:30.683258+00:00",
     "tests": [
       {
         "module": "health_check",
@@ -31,7 +31,7 @@
     "suite_name": "Pipeline Integrity",
     "status": "pass",
     "summary": "3/3 pass, 0 warn, 0 fail",
-    "finished_at": "2026-02-22T11:43:44.416043+00:00",
+    "finished_at": "2026-02-22T12:30:30.685018+00:00",
     "tests": [
       {
         "module": "sqlite_inspector",
@@ -42,7 +42,7 @@
       {
         "module": "pipeline_completeness",
         "status": "pass",
-        "msg": "Все 547 записей обработаны",
+        "msg": "Все 581 записей обработаны",
         "detail": ""
       },
       {
@@ -58,7 +58,7 @@
     "suite_name": "UX & Text Quality",
     "status": "pass",
     "summary": "1/1 pass, 0 warn, 0 fail",
-    "finished_at": "2026-02-22T11:43:44.454327+00:00",
+    "finished_at": "2026-02-22T12:30:30.686626+00:00",
     "tests": [
       {
         "module": "text_quality",
@@ -73,7 +73,7 @@
     "suite_name": "E2E Scenarios",
     "status": "pass",
     "summary": "2/2 pass, 0 warn, 0 fail",
-    "finished_at": "2026-02-22T11:43:44.537872+00:00",
+    "finished_at": "2026-02-22T12:30:30.691510+00:00",
     "tests": [
       {
         "module": "health_check",
@@ -84,7 +84,40 @@
       {
         "module": "sqlite_inspector",
         "status": "pass",
-        "msg": "last=0.0ч назад | rows=3728",
+        "msg": "last=0.0ч назад | rows=3816",
+        "detail": ""
+      }
+    ]
+  },
+  "monitoring": {
+    "suite_id": "monitoring",
+    "suite_name": "Monitoring",
+    "status": "pass",
+    "summary": "4/4 pass, 0 warn, 0 fail",
+    "finished_at": "2026-02-22T12:30:30.699566+00:00",
+    "tests": [
+      {
+        "module": "watcher_freshness",
+        "status": "pass",
+        "msg": "Gmail=0мин назад | GDrive=0мин назад",
+        "detail": ""
+      },
+      {
+        "module": "daemon_errors",
+        "status": "pass",
+        "msg": "Лог чистый",
+        "detail": ""
+      },
+      {
+        "module": "cars_activity",
+        "status": "pass",
+        "msg": "Решений: 920 за 24ч | Циклов: 2695 | Последний: 2026-02-22T12:29",
+        "detail": ""
+      },
+      {
+        "module": "pending_aging",
+        "status": "pass",
+        "msg": "Pending: 0 | Зависших >48ч: 0",
         "detail": ""
       }
     ]

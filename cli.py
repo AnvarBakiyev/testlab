@@ -40,6 +40,8 @@ def main():
 
     project_id = args[0]
     suite_id = args[1] if len(args) > 1 else None
+    if suite_id == "all":
+        suite_id = None  # "all" = запустить все сьюты
 
     cfg = load_project(project_id)
     if cfg is None:
