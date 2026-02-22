@@ -1,0 +1,108 @@
+{
+  "id": "personal_agi",
+  "name": "Personal AGI",
+  "description": "OODA daemon + Telegram bot + Command Center + Knowledge Graph",
+  "base_path": "/Users/anvarbakiyev/dronor",
+  "github_repo": "AnvarBakiyev/personal-agi",
+  "test_suites": {
+    "health": {
+      "name": "System Health",
+      "schedule": "every_5min",
+      "modules": [
+        {
+          "module": "health_check",
+          "config": {
+            "url": "http://localhost:9100/api/health"
+          }
+        },
+        {
+          "module": "process_monitor",
+          "config": {
+            "process": "agi_daemon.py"
+          }
+        },
+        {
+          "module": "sqlite_inspector",
+          "config": {
+            "db": "local_data/personal_agi/daemon_state.db",
+            "table": "daemon_runs",
+            "timestamp_col": "started_at",
+            "freshness_hours": 0.5
+          }
+        }
+      ]
+    },
+    "pipeline": {
+      "name": "Pipeline Integrity",
+      "schedule": "every_15min",
+      "modules": [
+        {
+          "module": "sqlite_inspector",
+          "config": {
+            "db": "local_data/personal_agi/events.db",
+            "table": "events",
+            "freshness_hours": 2
+          }
+        },
+        {
+          "module": "pipeline_completeness",
+          "config": {
+            "input_db": "local_data/personal_agi/events.db",
+            "input_query": "SELECT COUNT(*) FROM events WHERE created_at > datetime('now', '-1 hour')",
+            "output_db": "local_data/personal_agi/events.db",
+            "output_query": "SELECT COUNT(*) FROM events WHERE status='processed' AND created_at > datetime('now', '-1 hour')",
+            "tolerance_percent": 15
+          }
+        },
+        {
+          "module": "idempotency",
+          "config": {
+            "db": "local_data/personal_agi/pending_actions.db",
+            "dedup_table": "sent_notifications",
+            "window_hours": 24
+          }
+        }
+      ]
+    },
+    "ux_quality": {
+      "name": "UX & Text Quality",
+      "schedule": "on_demand",
+      "modules": [
+        {
+          "module": "text_quality",
+          "config": {
+            "texts": [
+              "Новое сообщение от Алексея: надо обсудить встречу на следующей неделе",
+              "Задача выполнена успешно",
+              "pending_actions updated at 2024-01-15T10:30:00"
+            ],
+            "check_artifacts": true
+          }
+        }
+      ]
+    },
+    "e2e": {
+      "name": "E2E Scenarios",
+      "schedule": "on_demand",
+      "modules": [
+        {
+          "module": "health_check",
+          "config": {
+            "url": "http://localhost:9100/api/health",
+            "expect_status": 200
+          }
+        },
+        {
+          "module": "sqlite_inspector",
+          "config": {
+            "db": "local_data/personal_agi/daemon_state.db",
+            "table": "daemon_runs",
+            "timestamp_col": "started_at",
+            "freshness_hours": 1,
+            "min_rows": 1
+          }
+        }
+      ]
+    }
+  }
+}

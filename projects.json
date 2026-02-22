@@ -1,0 +1,9 @@
+{
+  "projects": [
+    {
+      "id": "personal_agi",
+      "name": "Personal AGI",
+      "config": "projects/personal_agi/project.json"
+    }
+  ]
+}

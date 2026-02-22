@@ -1,0 +1,26 @@
+{
+  "suite_id": "e2e",
+  "suite_name": "E2E Scenarios",
+  "project": "personal_agi",
+  "status": "fail",
+  "summary": "0/1 pass, 0 warn, 1 fail",
+  "started_at": "2026-02-22T10:19:21.723707+00:00",
+  "finished_at": "2026-02-22T10:19:21.730414+00:00",
+  "tests": [
+    {
+      "status": "fail",
+      "msg": "dronor_health: 1 assertions failed",
+      "detail": "status: ожидали='ok' получили=None",
+      "data": {
+        "result": {
+          "raw": "Container not found on server."
+        }
+      },
+      "duration_ms": 6,
+      "module": "dronor_expert",
+      "suite": "e2e",
+      "project": "personal_agi"
+    }
+  ],
+  "saved_at": "2026-02-22T10:19:21.731310+00:00"
+}

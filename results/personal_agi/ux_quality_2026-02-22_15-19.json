@@ -1,0 +1,22 @@
+{
+  "suite_id": "ux_quality",
+  "suite_name": "UX & Text Quality",
+  "project": "personal_agi",
+  "status": "fail",
+  "summary": "0/1 pass, 0 warn, 1 fail",
+  "started_at": "2026-02-22T10:19:21.722782+00:00",
+  "finished_at": "2026-02-22T10:19:21.723701+00:00",
+  "tests": [
+    {
+      "status": "fail",
+      "msg": "Module text_quality crashed",
+      "detail": "in _find_and_load_unlocked\n  File \"<frozen importlib._bootstrap>\", line 935, in _load_unlocked\n  File \"<frozen importlib._bootstrap_external>\", line 995, in exec_module\n  File \"<frozen importlib._bootstrap_external>\", line 1133, in get_code\n  File \"<frozen importlib._bootstrap_external>\", line 1063, in source_to_code\n  File \"<frozen importlib._bootstrap>\", line 488, in _call_with_frames_removed\n  File \"/Users/anvarbakiyev/dronor/testlab/modules/text_quality.py\", line 13\n    (r\\'{[\"\\']?\\w+[\"\\']?\\s*:\\', \"JSON-объект\"),\n       ^\nSyntaxError: unexpected character after line continuation character\n",
+      "data": {},
+      "duration_ms": 0,
+      "module": "text_quality",
+      "suite": "ux_quality",
+      "project": "personal_agi"
+    }
+  ],
+  "saved_at": "2026-02-22T10:19:21.731140+00:00"
+}
