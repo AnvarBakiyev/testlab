@@ -4,8 +4,8 @@
   "project": "personal_agi",
   "status": "warn",
   "summary": "3/4 pass, 1 warn, 0 fail",
-  "started_at": "2026-02-22T17:16:36.827192+00:00",
-  "finished_at": "2026-02-22T17:16:37.394483+00:00",
+  "started_at": "2026-02-22T17:42:28.392293+00:00",
+  "finished_at": "2026-02-22T17:42:28.957733+00:00",
   "tests": [
     {
       "status": "pass",
@@ -14,14 +14,14 @@
       "data": {
         "status_code": 200
       },
-      "duration_ms": 9,
+      "duration_ms": 15,
       "module": "health_check",
       "suite": "e2e",
       "project": "personal_agi"
     },
     {
       "status": "pass",
-      "msg": "last=0.0ч назад | rows=4430",
+      "msg": "last=0.0ч назад | rows=4485",
       "detail": "",
       "data": {},
       "duration_ms": 2,
@@ -31,24 +31,24 @@
     },
     {
       "status": "warn",
-      "msg": "Person: 1886 | Org: 297 | Comm: 5926 | Name-дублей: 11",
-      "detail": "Дублей по имени: 11",
+      "msg": "Person: 1886 | Org: 297 | Comm: 5926 | Name-дублей: 4",
+      "detail": "Дублей по имени: 4",
       "data": {},
-      "duration_ms": 136,
+      "duration_ms": 129,
       "module": "kg_health",
       "suite": "e2e",
       "project": "personal_agi"
     },
     {
       "status": "pass",
-      "msg": "Доставлено (msg_id=76)",
+      "msg": "Доставлено (msg_id=86)",
       "detail": "",
       "data": {},
-      "duration_ms": 418,
+      "duration_ms": 417,
       "module": "telegram_ping",
       "suite": "e2e",
       "project": "personal_agi"
     }
   ],
-  "saved_at": "2026-02-22T17:16:37.394897+00:00"
+  "saved_at": "2026-02-22T17:42:28.959051+00:00"
 }

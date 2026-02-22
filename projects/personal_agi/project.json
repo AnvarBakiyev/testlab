@@ -282,6 +282,21 @@
           "config": {
             "check_experts_exist": true
           }
+        },
+        {
+          "module": "oauth_token_health",
+          "config": {}
+        },
+        {
+          "module": "daemon_config_expert_refs",
+          "config": {}
+        },
+        {
+          "module": "daemon_activity_check",
+          "config": {
+            "max_silence_minutes": 30,
+            "min_decisions_per_hour": 2
+          }
         }
       ]
     }

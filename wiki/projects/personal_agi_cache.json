@@ -4,7 +4,7 @@
     "suite_name": "System Health",
     "status": "pass",
     "summary": "3/3 pass, 0 warn, 0 fail",
-    "finished_at": "2026-02-22T17:20:00.760151+00:00",
+    "finished_at": "2026-02-22T18:15:01.111238+00:00",
     "tests": [
       {
         "module": "health_check",
@@ -29,9 +29,9 @@
   "pipeline": {
     "suite_id": "pipeline",
     "suite_name": "Pipeline Integrity",
-    "status": "pass",
-    "summary": "6/6 pass, 0 warn, 0 fail",
-    "finished_at": "2026-02-22T17:06:38.082680+00:00",
+    "status": "warn",
+    "summary": "5/6 pass, 1 warn, 0 fail",
+    "finished_at": "2026-02-22T18:00:00.747565+00:00",
     "tests": [
       {
         "module": "sqlite_inspector",
@@ -41,8 +41,8 @@
       },
       {
         "module": "pipeline_completeness",
-        "status": "pass",
-        "msg": "Все 1265 записей обработаны",
+        "status": "warn",
+        "msg": "Потеряно 50 (3.3%) — в норме",
         "detail": ""
       },
       {
@@ -54,7 +54,7 @@
       {
         "module": "canary_check",
         "status": "pass",
-        "msg": "Last cycle: 0.2 min ago",
+        "msg": "Last cycle: 0.1 min ago",
         "detail": ""
       },
       {
@@ -66,8 +66,8 @@
       {
         "module": "ooda_phase_balance",
         "status": "pass",
-        "msg": "Balance OK: 14 events → 7 actions",
-        "detail": "Last 20 runs: 14 events in, 7 actions out | 11 runs had events, 6 produced actions"
+        "msg": "Balance OK: 105 events → 29 actions",
+        "detail": "Last 20 runs: 105 events in, 29 actions out | 9 runs had events, 9 produced actions"
       }
     ]
   },
@@ -76,7 +76,7 @@
     "suite_name": "UX & Text Quality",
     "status": "pass",
     "summary": "3/3 pass, 0 warn, 0 fail",
-    "finished_at": "2026-02-22T17:06:37.381071+00:00",
+    "finished_at": "2026-02-22T18:00:01.138200+00:00",
     "tests": [
       {
         "module": "text_quality",
@@ -93,7 +93,7 @@
       {
         "module": "command_center_api_check",
         "status": "pass",
-        "msg": "CC API 4 methods OK | overview_persons=1884, pending_count=9, sync_has_gmail=True, dronor_status=healthy",
+        "msg": "CC API 4 methods OK | overview_persons=1886, pending_count=9, sync_has_gmail=True, dronor_status=healthy",
         "detail": ""
       }
     ]
@@ -103,7 +103,7 @@
     "suite_name": "E2E Scenarios",
     "status": "warn",
     "summary": "3/4 pass, 1 warn, 0 fail",
-    "finished_at": "2026-02-22T17:16:37.394483+00:00",
+    "finished_at": "2026-02-22T17:42:28.957733+00:00",
     "tests": [
       {
         "module": "health_check",
@@ -114,19 +114,19 @@
       {
         "module": "sqlite_inspector",
         "status": "pass",
-        "msg": "last=0.0ч назад | rows=4430",
+        "msg": "last=0.0ч назад | rows=4485",
         "detail": ""
       },
       {
         "module": "kg_health",
         "status": "warn",
-        "msg": "Person: 1886 | Org: 297 | Comm: 5926 | Name-дублей: 11",
-        "detail": "Дублей по имени: 11"
+        "msg": "Person: 1886 | Org: 297 | Comm: 5926 | Name-дублей: 4",
+        "detail": "Дублей по имени: 4"
       },
       {
         "module": "telegram_ping",
         "status": "pass",
-        "msg": "Доставлено (msg_id=76)",
+        "msg": "Доставлено (msg_id=86)",
         "detail": ""
       }
     ]
@@ -136,7 +136,7 @@
     "suite_name": "Monitoring",
     "status": "pass",
     "summary": "4/4 pass, 0 warn, 0 fail",
-    "finished_at": "2026-02-22T17:20:00.687827+00:00",
+    "finished_at": "2026-02-22T18:15:01.054406+00:00",
     "tests": [
       {
         "module": "watcher_freshness",
@@ -153,7 +153,7 @@
       {
         "module": "cars_activity",
         "status": "pass",
-        "msg": "Решений: 1139 за 24ч | Циклов: 3317 | Последний: 2026-02-22T17:19",
+        "msg": "Решений: 1211 за 24ч | Циклов: 3424 | Последний: 2026-02-22T18:14",
         "detail": ""
       },
       {
@@ -169,12 +169,12 @@
     "suite_name": "LLM Decision Judge",
     "status": "pass",
     "summary": "1/1 pass, 0 warn, 0 fail",
-    "finished_at": "2026-02-22T17:13:30.533222+00:00",
+    "finished_at": "2026-02-22T17:24:33.791366+00:00",
     "tests": [
       {
         "module": "llm_judge",
         "status": "pass",
-        "msg": "LLM judge: 7/7 OK — All decisions are reasonable—memory maintenance operations are standard, and dismissals appropriatel",
+        "msg": "LLM judge: 7/7 OK — All decisions are sound—routine memory maintenance operations and appropriate dismissals of non-acti",
         "detail": ""
       }
     ]
@@ -183,8 +183,8 @@
     "suite_id": "cc_memory_health",
     "suite_name": "CC & Memory Health",
     "status": "pass",
-    "summary": "8/8 pass, 0 warn, 0 fail",
-    "finished_at": "2026-02-22T17:13:53.907408+00:00",
+    "summary": "9/9 pass, 0 warn, 0 fail",
+    "finished_at": "2026-02-22T17:35:33.574373+00:00",
     "tests": [
       {
         "module": "memory_block_freshness",
@@ -232,6 +232,12 @@
         "module": "pending_buttons_check",
         "status": "pass",
         "msg": "0 actions with buttons — all within limits",
+        "detail": ""
+      },
+      {
+        "module": "connector_config_check",
+        "status": "pass",
+        "msg": "All 9 connectors fully configured",
         "detail": ""
       }
     ]
