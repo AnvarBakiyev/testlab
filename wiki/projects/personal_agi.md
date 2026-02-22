@@ -1,18 +1,18 @@
 # Personal AGI --- Test Status
 
-*Updated: 2026-02-22 15:34*
+*Updated: 2026-02-22 16:00*
 
 ## Summary
 
 | Suite | Result | Updated |
 |-------|--------|---------|
-| OK System Health | 3/3 pass, 0 warn, 0 fail | 2026-02-22 10:34 |
+| WARN Pipeline Integrity | 2/3 pass, 1 warn, 0 fail | 2026-02-22 11:00 |
 
 ## Details
 
-OK System Health
+WARN Pipeline Integrity
 
-- OK health_check: HTTP 200 — http://localhost:9100/api/health
-- OK process_monitor: pgrep: 2 процесс(ов) PID=50439
-- OK sqlite_inspector: last=0.0ч назад
+- OK sqlite_inspector: last=-5.0ч назад
+- WARN pipeline_completeness: Потеряно 2 (0.4%) — в норме
+- OK idempotency: За 24ч: 0 уникальных уведомлений
 

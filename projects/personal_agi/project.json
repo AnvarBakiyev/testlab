@@ -57,8 +57,10 @@
         {
           "module": "idempotency",
           "config": {
-            "db": "local_data/personal_agi/pending_actions.db",
+            "db": "local_data/personal_agi/daemon_state.db",
             "dedup_table": "sent_notifications",
+            "dedup_key_col": "dedup_key",
+            "timestamp_col": "sent_at",
             "window_hours": 24
           }
         }
