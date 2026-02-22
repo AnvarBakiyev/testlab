@@ -2,28 +2,28 @@
   "suite_id": "llm_judge",
   "suite_name": "LLM Decision Judge",
   "project": "personal_agi",
-  "status": "pass",
-  "summary": "1/1 pass, 0 warn, 0 fail",
-  "started_at": "2026-02-22T17:24:30.669461+00:00",
-  "finished_at": "2026-02-22T17:24:33.791366+00:00",
+  "status": "warn",
+  "summary": "0/1 pass, 1 warn, 0 fail",
+  "started_at": "2026-02-22T18:32:10.680560+00:00",
+  "finished_at": "2026-02-22T18:32:15.136935+00:00",
   "tests": [
     {
-      "status": "pass",
-      "msg": "LLM judge: 7/7 OK — All decisions are sound—routine memory maintenance operations and appropriate dismissals of non-acti",
+      "status": "warn",
+      "msg": "LLM judge: 0 bad, 4 warn / 7 — Most decisions are reasonable, but several dismissals rely on volume and assumpt",
       "detail": "",
       "data": {
         "total": 7,
-        "ok": 7,
-        "warn": 0,
+        "ok": 3,
+        "warn": 4,
         "bad": 0,
         "model": "claude-haiku-4-5-20251001",
-        "summary": "All decisions are sound—routine memory maintenance operations and appropriate dismissals of non-actionable chat content."
+        "summary": "Most decisions are reasonable, but several dismissals rely on volume and assumptions rather than content sampling, creating risk of losing important professional information."
       },
-      "duration_ms": 3121,
+      "duration_ms": 4456,
       "module": "llm_judge",
       "suite": "llm_judge",
       "project": "personal_agi"
     }
   ],
-  "saved_at": "2026-02-22T17:24:33.791875+00:00"
+  "saved_at": "2026-02-22T18:32:15.137265+00:00"
 }

@@ -3,52 +3,52 @@
   "suite_name": "Pipeline Integrity",
   "project": "personal_agi",
   "status": "warn",
-  "summary": "5/6 pass, 1 warn, 0 fail",
-  "started_at": "2026-02-22T18:00:00.685296+00:00",
-  "finished_at": "2026-02-22T18:00:00.747565+00:00",
+  "summary": "4/6 pass, 2 warn, 0 fail",
+  "started_at": "2026-02-22T18:32:12.577061+00:00",
+  "finished_at": "2026-02-22T18:32:12.589495+00:00",
   "tests": [
     {
       "status": "pass",
       "msg": "last=-5.0ч назад",
       "detail": "",
       "data": {},
-      "duration_ms": 13,
+      "duration_ms": 1,
       "module": "sqlite_inspector",
       "suite": "pipeline",
       "project": "personal_agi"
     },
     {
       "status": "warn",
-      "msg": "Потеряно 50 (3.3%) — в норме",
+      "msg": "Потеряно 1 (0.1%) — в норме",
       "detail": "",
       "data": {
-        "input": 1508,
-        "output": 1458
+        "input": 1671,
+        "output": 1670
       },
-      "duration_ms": 5,
+      "duration_ms": 2,
       "module": "pipeline_completeness",
       "suite": "pipeline",
       "project": "personal_agi"
     },
     {
       "status": "pass",
-      "msg": "За 24ч: 13 уникальных уведомлений",
+      "msg": "За 24ч: 19 уникальных уведомлений",
       "detail": "",
       "data": {
-        "sent": 13,
+        "sent": 19,
         "window_hours": 24
       },
-      "duration_ms": 3,
+      "duration_ms": 0,
       "module": "idempotency",
       "suite": "pipeline",
       "project": "personal_agi"
     },
     {
       "status": "pass",
-      "msg": "Last cycle: 0.1 min ago",
+      "msg": "Last cycle: 0.2 min ago",
       "detail": "",
       "data": {},
-      "duration_ms": 20,
+      "duration_ms": 4,
       "module": "canary_check",
       "suite": "pipeline",
       "project": "personal_agi"
@@ -58,21 +58,21 @@
       "msg": "No lost events in last 24h",
       "detail": "",
       "data": {},
-      "duration_ms": 9,
+      "duration_ms": 0,
       "module": "dead_letter_check",
       "suite": "pipeline",
       "project": "personal_agi"
     },
     {
-      "status": "pass",
-      "msg": "Balance OK: 105 events → 29 actions",
-      "detail": "Last 20 runs: 105 events in, 29 actions out | 9 runs had events, 9 produced actions",
+      "status": "warn",
+      "msg": "Low action ratio: 0.000 (min 0.01)",
+      "detail": "Last 20 runs: 6 events in, 0 actions out | 5 runs had events, 0 produced actions",
       "data": {},
-      "duration_ms": 6,
+      "duration_ms": 3,
       "module": "ooda_phase_balance",
       "suite": "pipeline",
       "project": "personal_agi"
     }
   ],
-  "saved_at": "2026-02-22T18:00:00.747955+00:00"
+  "saved_at": "2026-02-22T18:32:12.590186+00:00"
 }

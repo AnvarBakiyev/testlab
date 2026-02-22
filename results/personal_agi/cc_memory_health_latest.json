@@ -2,10 +2,10 @@
   "suite_id": "cc_memory_health",
   "suite_name": "CC & Memory Health",
   "project": "personal_agi",
-  "status": "pass",
-  "summary": "9/9 pass, 0 warn, 0 fail",
-  "started_at": "2026-02-22T17:35:33.558390+00:00",
-  "finished_at": "2026-02-22T17:35:33.574373+00:00",
+  "status": "warn",
+  "summary": "11/12 pass, 1 warn, 0 fail",
+  "started_at": "2026-02-22T18:31:59.340839+00:00",
+  "finished_at": "2026-02-22T18:31:59.366327+00:00",
   "tests": [
     {
       "status": "pass",
@@ -44,7 +44,7 @@
         "missing": [],
         "hours": 48
       },
-      "duration_ms": 1,
+      "duration_ms": 0,
       "module": "memory_writers_active",
       "suite": "cc_memory_health",
       "project": "personal_agi"
@@ -54,7 +54,7 @@
       "msg": "KG freshness OK - updated 0 day(s) ago",
       "detail": "",
       "data": {
-        "last_update_at": "2026-02-22T17:09:13.216538+00:00",
+        "last_update_at": "2026-02-22T18:05:12.314869+00:00",
         "age_days": 0
       },
       "duration_ms": 0,
@@ -138,11 +138,72 @@
         "missing_quick": [],
         "broken_refs": []
       },
-      "duration_ms": 10,
+      "duration_ms": 6,
       "module": "connector_config_check",
+      "suite": "cc_memory_health",
+      "project": "personal_agi"
+    },
+    {
+      "status": "warn",
+      "msg": "OAuth token expires in 0.7 hours",
+      "detail": "Expires: 2026-02-22T19:12:21.995162Z",
+      "data": {
+        "expiry": "2026-02-22T19:12:21.995162Z",
+        "hours_until_expiry": 0.7,
+        "has_refresh_token": true
+      },
+      "duration_ms": 2,
+      "module": "oauth_token_health",
+      "suite": "cc_memory_health",
+      "project": "personal_agi"
+    },
+    {
+      "status": "pass",
+      "msg": "All 4 expert refs in daemon_config are valid",
+      "detail": "",
+      "data": {
+        "total_refs": 4,
+        "all_refs": [
+          [
+            "news_subscription.tags.business",
+            "news_general_summarizer"
+          ],
+          [
+            "news_subscription.tags.tech",
+            "news_general_summarizer"
+          ],
+          [
+            "news_subscription.tags.invest_special",
+            "invest_expert_analyzer"
+          ],
+          [
+            "news_subscription.tags.petr",
+            "invest_expert_analyzer"
+          ]
+        ],
+        "broken": []
+      },
+      "duration_ms": 6,
+      "module": "daemon_config_expert_refs",
+      "suite": "cc_memory_health",
+      "project": "personal_agi"
+    },
+    {
+      "status": "pass",
+      "msg": "Daemon active: 72 decisions/hour, last 27min ago",
+      "detail": "",
+      "data": {
+        "last_decision": "2026-02-22T18:05:12.316532+00:00",
+        "silence_minutes": 26.8,
+        "decisions_last_hour": 72,
+        "error_rate_50": 0.0,
+        "error_count_50": 0
+      },
+      "duration_ms": 6,
+      "module": "daemon_activity_check",
       "suite": "cc_memory_health",
       "project": "personal_agi"
     }
   ],
-  "saved_at": "2026-02-22T17:35:33.574953+00:00"
+  "saved_at": "2026-02-22T18:31:59.366638+00:00"
 }

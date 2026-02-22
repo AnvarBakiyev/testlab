@@ -4,15 +4,15 @@
   "project": "personal_agi",
   "status": "pass",
   "summary": "4/4 pass, 0 warn, 0 fail",
-  "started_at": "2026-02-22T18:20:01.662507+00:00",
-  "finished_at": "2026-02-22T18:20:01.680394+00:00",
+  "started_at": "2026-02-22T18:32:06.246744+00:00",
+  "finished_at": "2026-02-22T18:32:06.251885+00:00",
   "tests": [
     {
       "status": "pass",
       "msg": "Gmail=0мин назад | GDrive=0мин назад",
       "detail": "",
       "data": {},
-      "duration_ms": 1,
+      "duration_ms": 0,
       "module": "watcher_freshness",
       "suite": "monitoring",
       "project": "personal_agi"
@@ -22,17 +22,17 @@
       "msg": "Лог чистый",
       "detail": "",
       "data": {},
-      "duration_ms": 1,
+      "duration_ms": 0,
       "module": "daemon_errors",
       "suite": "monitoring",
       "project": "personal_agi"
     },
     {
       "status": "pass",
-      "msg": "Решений: 1211 за 24ч | Циклов: 3435 | Последний: 2026-02-22T18:19",
+      "msg": "Решений: 1211 за 24ч | Циклов: 3462 | Последний: 2026-02-22T18:31",
       "detail": "",
       "data": {},
-      "duration_ms": 12,
+      "duration_ms": 3,
       "module": "cars_activity",
       "suite": "monitoring",
       "project": "personal_agi"
@@ -42,11 +42,11 @@
       "msg": "Pending: 0 | Зависших >48ч: 0",
       "detail": "",
       "data": {},
-      "duration_ms": 2,
+      "duration_ms": 0,
       "module": "pending_aging",
       "suite": "monitoring",
       "project": "personal_agi"
     }
   ],
-  "saved_at": "2026-02-22T18:20:01.682225+00:00"
+  "saved_at": "2026-02-22T18:32:06.252147+00:00"
 }

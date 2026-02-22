@@ -297,6 +297,10 @@
             "max_silence_minutes": 30,
             "min_decisions_per_hour": 2
           }
+        },
+        {
+          "module": "update_kg_wiring",
+          "config": {}
         }
       ]
     }
