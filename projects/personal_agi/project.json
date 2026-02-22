@@ -276,6 +276,12 @@
           "config": {
             "sample_size": 30
           }
+        },
+        {
+          "module": "connector_config_check",
+          "config": {
+            "check_experts_exist": true
+          }
         }
       ]
     }

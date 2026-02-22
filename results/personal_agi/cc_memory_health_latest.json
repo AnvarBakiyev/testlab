@@ -2,48 +2,32 @@
   "suite_id": "cc_memory_health",
   "suite_name": "CC & Memory Health",
   "project": "personal_agi",
-  "status": "fail",
-  "summary": "6/8 pass, 0 warn, 2 fail",
-  "started_at": "2026-02-22T16:25:27.184324+00:00",
-  "finished_at": "2026-02-22T16:25:27.199978+00:00",
+  "status": "pass",
+  "summary": "8/8 pass, 0 warn, 0 fail",
+  "started_at": "2026-02-22T17:13:53.904818+00:00",
+  "finished_at": "2026-02-22T17:13:53.907408+00:00",
   "tests": [
     {
-      "status": "fail",
-      "msg": "2 block(s) not updated for >21 days",
-      "detail": "persona (25d), context (25d)",
+      "status": "pass",
+      "msg": "All 3 blocks fresh (within 7d)",
+      "detail": "",
       "data": {
         "blocks": {
-          "persona": 25,
-          "human": 8,
-          "context": 25
+          "persona": 0,
+          "human": 0,
+          "context": 0
         },
-        "stale": [
-          {
-            "block": "persona",
-            "days": 25,
-            "reason": ">21d"
-          },
-          {
-            "block": "human",
-            "days": 8,
-            "reason": ">7d"
-          },
-          {
-            "block": "context",
-            "days": 25,
-            "reason": ">21d"
-          }
-        ]
+        "stale": []
       },
-      "duration_ms": 1,
+      "duration_ms": 0,
       "module": "memory_block_freshness",
       "suite": "cc_memory_health",
       "project": "personal_agi"
     },
     {
-      "status": "fail",
-      "msg": "NO memory experts ran in last 48h - memory frozen",
-      "detail": "Missing: memory_auto_manager, memory_updater, memory_learning_extractor, memory_reflection",
+      "status": "pass",
+      "msg": "All 4 memory writers active within 48h",
+      "detail": "",
       "data": {
         "experts": [
           "memory_auto_manager",
@@ -51,16 +35,16 @@
           "memory_learning_extractor",
           "memory_reflection"
         ],
-        "found": {},
-        "missing": [
-          "memory_auto_manager",
-          "memory_updater",
-          "memory_learning_extractor",
-          "memory_reflection"
-        ],
+        "found": {
+          "memory_auto_manager": "2026-02-22T17:09:13.216538+00:00",
+          "memory_updater": "2026-02-22T17:09:13.216538+00:00",
+          "memory_learning_extractor": "2026-02-22T17:09:13.216538+00:00",
+          "memory_reflection": "2026-02-22T17:09:13.216538+00:00"
+        },
+        "missing": [],
         "hours": 48
       },
-      "duration_ms": 8,
+      "duration_ms": 0,
       "module": "memory_writers_active",
       "suite": "cc_memory_health",
       "project": "personal_agi"
@@ -70,7 +54,7 @@
       "msg": "KG freshness OK - updated 0 day(s) ago",
       "detail": "",
       "data": {
-        "last_update_at": "2026-02-22T15:35:19.802805+00:00",
+        "last_update_at": "2026-02-22T17:09:13.216538+00:00",
         "age_days": 0
       },
       "duration_ms": 0,
@@ -86,7 +70,7 @@
         "blocks_checked": 3,
         "violations": []
       },
-      "duration_ms": 1,
+      "duration_ms": 0,
       "module": "cc_memory_renderer",
       "suite": "cc_memory_health",
       "project": "personal_agi"
@@ -100,7 +84,7 @@
         "leaks": 0,
         "examples": []
       },
-      "duration_ms": 1,
+      "duration_ms": 0,
       "module": "cc_log_leakage",
       "suite": "cc_memory_health",
       "project": "personal_agi"
@@ -145,5 +129,5 @@
       "project": "personal_agi"
     }
   ],
-  "saved_at": "2026-02-22T16:25:27.638673+00:00"
+  "saved_at": "2026-02-22T17:13:53.907611+00:00"
 }

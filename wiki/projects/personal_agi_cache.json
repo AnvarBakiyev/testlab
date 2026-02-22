@@ -4,7 +4,7 @@
     "suite_name": "System Health",
     "status": "pass",
     "summary": "3/3 pass, 0 warn, 0 fail",
-    "finished_at": "2026-02-22T16:25:01.288420+00:00",
+    "finished_at": "2026-02-22T17:20:00.760151+00:00",
     "tests": [
       {
         "module": "health_check",
@@ -31,7 +31,7 @@
     "suite_name": "Pipeline Integrity",
     "status": "pass",
     "summary": "6/6 pass, 0 warn, 0 fail",
-    "finished_at": "2026-02-22T16:00:00.923050+00:00",
+    "finished_at": "2026-02-22T17:06:38.082680+00:00",
     "tests": [
       {
         "module": "sqlite_inspector",
@@ -42,7 +42,7 @@
       {
         "module": "pipeline_completeness",
         "status": "pass",
-        "msg": "Все 1084 записей обработаны",
+        "msg": "Все 1265 записей обработаны",
         "detail": ""
       },
       {
@@ -54,7 +54,7 @@
       {
         "module": "canary_check",
         "status": "pass",
-        "msg": "Last cycle: 0.3 min ago",
+        "msg": "Last cycle: 0.2 min ago",
         "detail": ""
       },
       {
@@ -66,8 +66,8 @@
       {
         "module": "ooda_phase_balance",
         "status": "pass",
-        "msg": "Balance OK: 4 events → 2 actions",
-        "detail": "Last 20 runs: 4 events in, 2 actions out | 3 runs had events, 2 produced actions"
+        "msg": "Balance OK: 14 events → 7 actions",
+        "detail": "Last 20 runs: 14 events in, 7 actions out | 11 runs had events, 6 produced actions"
       }
     ]
   },
@@ -76,7 +76,7 @@
     "suite_name": "UX & Text Quality",
     "status": "pass",
     "summary": "3/3 pass, 0 warn, 0 fail",
-    "finished_at": "2026-02-22T16:00:01.319548+00:00",
+    "finished_at": "2026-02-22T17:06:37.381071+00:00",
     "tests": [
       {
         "module": "text_quality",
@@ -103,7 +103,7 @@
     "suite_name": "E2E Scenarios",
     "status": "warn",
     "summary": "3/4 pass, 1 warn, 0 fail",
-    "finished_at": "2026-02-22T13:14:47.922246+00:00",
+    "finished_at": "2026-02-22T17:16:37.394483+00:00",
     "tests": [
       {
         "module": "health_check",
@@ -114,7 +114,7 @@
       {
         "module": "sqlite_inspector",
         "status": "pass",
-        "msg": "last=0.0ч назад | rows=3912",
+        "msg": "last=0.0ч назад | rows=4430",
         "detail": ""
       },
       {
@@ -126,7 +126,7 @@
       {
         "module": "telegram_ping",
         "status": "pass",
-        "msg": "Доставлено (msg_id=57)",
+        "msg": "Доставлено (msg_id=76)",
         "detail": ""
       }
     ]
@@ -136,7 +136,7 @@
     "suite_name": "Monitoring",
     "status": "pass",
     "summary": "4/4 pass, 0 warn, 0 fail",
-    "finished_at": "2026-02-22T16:25:01.211108+00:00",
+    "finished_at": "2026-02-22T17:20:00.687827+00:00",
     "tests": [
       {
         "module": "watcher_freshness",
@@ -153,7 +153,7 @@
       {
         "module": "cars_activity",
         "status": "pass",
-        "msg": "Решений: 1099 за 24ч | Циклов: 3197 | Последний: 2026-02-22T16:24",
+        "msg": "Решений: 1139 за 24ч | Циклов: 3317 | Последний: 2026-02-22T17:19",
         "detail": ""
       },
       {
@@ -167,14 +167,14 @@
   "llm_judge": {
     "suite_id": "llm_judge",
     "suite_name": "LLM Decision Judge",
-    "status": "warn",
-    "summary": "0/1 pass, 1 warn, 0 fail",
-    "finished_at": "2026-02-22T15:10:47.527519+00:00",
+    "status": "pass",
+    "summary": "1/1 pass, 0 warn, 0 fail",
+    "finished_at": "2026-02-22T17:13:30.533222+00:00",
     "tests": [
       {
         "module": "llm_judge",
-        "status": "warn",
-        "msg": "LLM judge: 0 bad, 4 warn / 7 — Pattern of aggressive dismissals with very high confidence (0.98-0.99) raises co",
+        "status": "pass",
+        "msg": "LLM judge: 7/7 OK — All decisions are reasonable—memory maintenance operations are standard, and dismissals appropriatel",
         "detail": ""
       }
     ]
@@ -182,21 +182,21 @@
   "cc_memory_health": {
     "suite_id": "cc_memory_health",
     "suite_name": "CC & Memory Health",
-    "status": "fail",
-    "summary": "6/8 pass, 0 warn, 2 fail",
-    "finished_at": "2026-02-22T16:25:27.199978+00:00",
+    "status": "pass",
+    "summary": "8/8 pass, 0 warn, 0 fail",
+    "finished_at": "2026-02-22T17:13:53.907408+00:00",
     "tests": [
       {
         "module": "memory_block_freshness",
-        "status": "fail",
-        "msg": "2 block(s) not updated for >21 days",
-        "detail": "persona (25d), context (25d)"
+        "status": "pass",
+        "msg": "All 3 blocks fresh (within 7d)",
+        "detail": ""
       },
       {
         "module": "memory_writers_active",
-        "status": "fail",
-        "msg": "NO memory experts ran in last 48h - memory frozen",
-        "detail": "Missing: memory_auto_manager, memory_updater, memory_learning_extractor, memory_reflection"
+        "status": "pass",
+        "msg": "All 4 memory writers active within 48h",
+        "detail": ""
       },
       {
         "module": "kg_freshness",

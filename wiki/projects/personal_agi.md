@@ -1,18 +1,18 @@
 # Personal AGI — Test Status
 
-*Updated: 2026-02-22 21:25*
+*Updated: 2026-02-22 22:20*
 
 ## Summary
 
 | Suite | Result | Updated |
 |-------|--------|---------|
-| OK System Health | 3/3 pass, 0 warn, 0 fail | 2026-02-22 16:25 |
-| OK Pipeline Integrity | 6/6 pass, 0 warn, 0 fail | 2026-02-22 16:00 |
-| OK UX & Text Quality | 3/3 pass, 0 warn, 0 fail | 2026-02-22 16:00 |
-| WARN E2E Scenarios | 3/4 pass, 1 warn, 0 fail | 2026-02-22 13:14 |
-| OK Monitoring | 4/4 pass, 0 warn, 0 fail | 2026-02-22 16:25 |
-| WARN LLM Decision Judge | 0/1 pass, 1 warn, 0 fail | 2026-02-22 15:10 |
-| FAIL CC & Memory Health | 6/8 pass, 0 warn, 2 fail | 2026-02-22 16:25 |
+| OK System Health | 3/3 pass, 0 warn, 0 fail | 2026-02-22 17:20 |
+| OK Pipeline Integrity | 6/6 pass, 0 warn, 0 fail | 2026-02-22 17:06 |
+| OK UX & Text Quality | 3/3 pass, 0 warn, 0 fail | 2026-02-22 17:06 |
+| WARN E2E Scenarios | 3/4 pass, 1 warn, 0 fail | 2026-02-22 17:16 |
+| OK Monitoring | 4/4 pass, 0 warn, 0 fail | 2026-02-22 17:20 |
+| OK LLM Decision Judge | 1/1 pass, 0 warn, 0 fail | 2026-02-22 17:13 |
+| OK CC & Memory Health | 8/8 pass, 0 warn, 0 fail | 2026-02-22 17:13 |
 
 ## Details
 
@@ -25,11 +25,11 @@ OK System Health
 OK Pipeline Integrity
 
 - OK sqlite_inspector: last=-5.0ч назад
-- OK pipeline_completeness: Все 1084 записей обработаны
+- OK pipeline_completeness: Все 1265 записей обработаны
 - OK idempotency: За 24ч: 13 уникальных уведомлений
-- OK canary_check: Last cycle: 0.3 min ago
+- OK canary_check: Last cycle: 0.2 min ago
 - OK dead_letter_check: No lost events in last 24h
-- OK ooda_phase_balance: Balance OK: 4 events → 2 actions
+- OK ooda_phase_balance: Balance OK: 14 events → 7 actions
 
 OK UX & Text Quality
 
@@ -40,28 +40,26 @@ OK UX & Text Quality
 WARN E2E Scenarios
 
 - OK health_check: HTTP 200 — http://localhost:9100/api/health
-- OK sqlite_inspector: last=0.0ч назад | rows=3912
+- OK sqlite_inspector: last=0.0ч назад | rows=4430
 - WARN kg_health: Person: 1886 | Org: 297 | Comm: 5926 | Name-дублей: 11
   > Дублей по имени: 11
-- OK telegram_ping: Доставлено (msg_id=57)
+- OK telegram_ping: Доставлено (msg_id=76)
 
 OK Monitoring
 
 - OK watcher_freshness: Gmail=0мин назад | GDrive=0мин назад
 - OK daemon_errors: Лог чистый
-- OK cars_activity: Решений: 1099 за 24ч | Циклов: 3197 | Последний: 2026-02-22T16:24
+- OK cars_activity: Решений: 1139 за 24ч | Циклов: 3317 | Последний: 2026-02-22T17:19
 - OK pending_aging: Pending: 0 | Зависших >48ч: 0
 
-WARN LLM Decision Judge
+OK LLM Decision Judge
 
-- WARN llm_judge: LLM judge: 0 bad, 4 warn / 7 — Pattern of aggressive dismissals with very high confidence (0.98-0.99) raises co
+- OK llm_judge: LLM judge: 7/7 OK — All decisions are reasonable—memory maintenance operations are standard, and dismissals appropriatel
 
-FAIL CC & Memory Health
+OK CC & Memory Health
 
-- FAIL memory_block_freshness: 2 block(s) not updated for >21 days
-  > persona (25d), context (25d)
-- FAIL memory_writers_active: NO memory experts ran in last 48h - memory frozen
-  > Missing: memory_auto_manager, memory_updater, memory_learning_extractor, memory_reflection
+- OK memory_block_freshness: All 3 blocks fresh (within 7d)
+- OK memory_writers_active: All 4 memory writers active within 48h
 - OK kg_freshness: KG freshness OK - updated 0 day(s) ago
 - OK cc_memory_renderer: All 3 blocks clean
 - OK cc_log_leakage: All 50 decisions clean

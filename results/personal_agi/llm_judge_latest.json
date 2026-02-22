@@ -2,28 +2,28 @@
   "suite_id": "llm_judge",
   "suite_name": "LLM Decision Judge",
   "project": "personal_agi",
-  "status": "warn",
-  "summary": "0/1 pass, 1 warn, 0 fail",
-  "started_at": "2026-02-22T15:10:43.197113+00:00",
-  "finished_at": "2026-02-22T15:10:47.527519+00:00",
+  "status": "pass",
+  "summary": "1/1 pass, 0 warn, 0 fail",
+  "started_at": "2026-02-22T17:13:27.341544+00:00",
+  "finished_at": "2026-02-22T17:13:30.533222+00:00",
   "tests": [
     {
-      "status": "warn",
-      "msg": "LLM judge: 0 bad, 4 warn / 7 — Pattern of aggressive dismissals with very high confidence (0.98-0.99) raises co",
+      "status": "pass",
+      "msg": "LLM judge: 7/7 OK — All decisions are reasonable—memory maintenance operations are standard, and dismissals appropriatel",
       "detail": "",
       "data": {
         "total": 7,
-        "ok": 3,
-        "warn": 4,
+        "ok": 7,
+        "warn": 0,
         "bad": 0,
         "model": "claude-haiku-4-5-20251001",
-        "summary": "Pattern of aggressive dismissals with very high confidence (0.98-0.99) raises concerns about whether context-relevant technical and automotive content is being inappropriately filtered, particularly in topic-specific channels."
+        "summary": "All decisions are reasonable—memory maintenance operations are standard, and dismissals appropriately filter out non-actionable group chat messages."
       },
-      "duration_ms": 4330,
+      "duration_ms": 3191,
       "module": "llm_judge",
       "suite": "llm_judge",
       "project": "personal_agi"
     }
   ],
-  "saved_at": "2026-02-22T15:10:47.527971+00:00"
+  "saved_at": "2026-02-22T17:13:30.533584+00:00"
 }
