@@ -1,0 +1,149 @@
+{
+  "suite_id": "cc_memory_health",
+  "suite_name": "CC & Memory Health",
+  "project": "personal_agi",
+  "status": "fail",
+  "summary": "6/8 pass, 0 warn, 2 fail",
+  "started_at": "2026-02-22T16:25:27.184324+00:00",
+  "finished_at": "2026-02-22T16:25:27.199978+00:00",
+  "tests": [
+    {
+      "status": "fail",
+      "msg": "2 block(s) not updated for >21 days",
+      "detail": "persona (25d), context (25d)",
+      "data": {
+        "blocks": {
+          "persona": 25,
+          "human": 8,
+          "context": 25
+        },
+        "stale": [
+          {
+            "block": "persona",
+            "days": 25,
+            "reason": ">21d"
+          },
+          {
+            "block": "human",
+            "days": 8,
+            "reason": ">7d"
+          },
+          {
+            "block": "context",
+            "days": 25,
+            "reason": ">21d"
+          }
+        ]
+      },
+      "duration_ms": 1,
+      "module": "memory_block_freshness",
+      "suite": "cc_memory_health",
+      "project": "personal_agi"
+    },
+    {
+      "status": "fail",
+      "msg": "NO memory experts ran in last 48h - memory frozen",
+      "detail": "Missing: memory_auto_manager, memory_updater, memory_learning_extractor, memory_reflection",
+      "data": {
+        "experts": [
+          "memory_auto_manager",
+          "memory_updater",
+          "memory_learning_extractor",
+          "memory_reflection"
+        ],
+        "found": {},
+        "missing": [
+          "memory_auto_manager",
+          "memory_updater",
+          "memory_learning_extractor",
+          "memory_reflection"
+        ],
+        "hours": 48
+      },
+      "duration_ms": 8,
+      "module": "memory_writers_active",
+      "suite": "cc_memory_health",
+      "project": "personal_agi"
+    },
+    {
+      "status": "pass",
+      "msg": "KG freshness OK - updated 0 day(s) ago",
+      "detail": "",
+      "data": {
+        "last_update_at": "2026-02-22T15:35:19.802805+00:00",
+        "age_days": 0
+      },
+      "duration_ms": 0,
+      "module": "kg_freshness",
+      "suite": "cc_memory_health",
+      "project": "personal_agi"
+    },
+    {
+      "status": "pass",
+      "msg": "All 3 blocks clean",
+      "detail": "",
+      "data": {
+        "blocks_checked": 3,
+        "violations": []
+      },
+      "duration_ms": 1,
+      "module": "cc_memory_renderer",
+      "suite": "cc_memory_health",
+      "project": "personal_agi"
+    },
+    {
+      "status": "pass",
+      "msg": "All 50 decisions clean",
+      "detail": "",
+      "data": {
+        "checked": 50,
+        "leaks": 0,
+        "examples": []
+      },
+      "duration_ms": 1,
+      "module": "cc_log_leakage",
+      "suite": "cc_memory_health",
+      "project": "personal_agi"
+    },
+    {
+      "status": "pass",
+      "msg": "All 0 pending actions are unique",
+      "detail": "",
+      "data": {
+        "pending": 0,
+        "dup_groups": 0,
+        "details": []
+      },
+      "duration_ms": 0,
+      "module": "cc_pending_duplicates",
+      "suite": "cc_memory_health",
+      "project": "personal_agi"
+    },
+    {
+      "status": "pass",
+      "msg": "No pending actions to check",
+      "detail": "",
+      "data": {},
+      "duration_ms": 0,
+      "module": "pending_text_quality",
+      "suite": "cc_memory_health",
+      "project": "personal_agi"
+    },
+    {
+      "status": "pass",
+      "msg": "0 actions with buttons — all within limits",
+      "detail": "",
+      "data": {
+        "checked": 0,
+        "with_buttons": 0,
+        "issues": 0,
+        "details": []
+      },
+      "duration_ms": 0,
+      "module": "pending_buttons_check",
+      "suite": "cc_memory_health",
+      "project": "personal_agi"
+    }
+  ],
+  "saved_at": "2026-02-22T16:25:27.638673+00:00"
+}

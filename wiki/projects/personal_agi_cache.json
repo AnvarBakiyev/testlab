@@ -4,7 +4,7 @@
     "suite_name": "System Health",
     "status": "pass",
     "summary": "3/3 pass, 0 warn, 0 fail",
-    "finished_at": "2026-02-22T16:20:00.576423+00:00",
+    "finished_at": "2026-02-22T16:25:01.288420+00:00",
     "tests": [
       {
         "module": "health_check",
@@ -136,7 +136,7 @@
     "suite_name": "Monitoring",
     "status": "pass",
     "summary": "4/4 pass, 0 warn, 0 fail",
-    "finished_at": "2026-02-22T16:20:00.496780+00:00",
+    "finished_at": "2026-02-22T16:25:01.211108+00:00",
     "tests": [
       {
         "module": "watcher_freshness",
@@ -153,7 +153,7 @@
       {
         "module": "cars_activity",
         "status": "pass",
-        "msg": "Решений: 1099 за 24ч | Циклов: 3186 | Последний: 2026-02-22T16:19",
+        "msg": "Решений: 1099 за 24ч | Циклов: 3197 | Последний: 2026-02-22T16:24",
         "detail": ""
       },
       {
@@ -175,6 +175,63 @@
         "module": "llm_judge",
         "status": "warn",
         "msg": "LLM judge: 0 bad, 4 warn / 7 — Pattern of aggressive dismissals with very high confidence (0.98-0.99) raises co",
+        "detail": ""
+      }
+    ]
+  },
+  "cc_memory_health": {
+    "suite_id": "cc_memory_health",
+    "suite_name": "CC & Memory Health",
+    "status": "fail",
+    "summary": "6/8 pass, 0 warn, 2 fail",
+    "finished_at": "2026-02-22T16:25:27.199978+00:00",
+    "tests": [
+      {
+        "module": "memory_block_freshness",
+        "status": "fail",
+        "msg": "2 block(s) not updated for >21 days",
+        "detail": "persona (25d), context (25d)"
+      },
+      {
+        "module": "memory_writers_active",
+        "status": "fail",
+        "msg": "NO memory experts ran in last 48h - memory frozen",
+        "detail": "Missing: memory_auto_manager, memory_updater, memory_learning_extractor, memory_reflection"
+      },
+      {
+        "module": "kg_freshness",
+        "status": "pass",
+        "msg": "KG freshness OK - updated 0 day(s) ago",
+        "detail": ""
+      },
+      {
+        "module": "cc_memory_renderer",
+        "status": "pass",
+        "msg": "All 3 blocks clean",
+        "detail": ""
+      },
+      {
+        "module": "cc_log_leakage",
+        "status": "pass",
+        "msg": "All 50 decisions clean",
+        "detail": ""
+      },
+      {
+        "module": "cc_pending_duplicates",
+        "status": "pass",
+        "msg": "All 0 pending actions are unique",
+        "detail": ""
+      },
+      {
+        "module": "pending_text_quality",
+        "status": "pass",
+        "msg": "No pending actions to check",
+        "detail": ""
+      },
+      {
+        "module": "pending_buttons_check",
+        "status": "pass",
+        "msg": "0 actions with buttons — all within limits",
         "detail": ""
       }
     ]

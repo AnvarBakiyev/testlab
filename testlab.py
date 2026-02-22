@@ -226,6 +226,101 @@ def run_module_direct():
     })
 
 
+
+
+@app.route("/api/testlab/report/<project_id>")
+def generate_report(project_id: str):
+    """
+    Generate a Markdown bug report with all FAIL/WARN from latest suite runs.
+    Download as .md file ready to send to an engineer.
+    """
+    import glob
+    from datetime import datetime
+
+    project = _load_project(project_id)
+    if not project:
+        return jsonify({"status": "error", "msg": f"Project {project_id} not found"}), 404
+
+    results_dir = Path("results") / project_id
+    if not results_dir.exists():
+        return jsonify({"status": "error", "msg": "No results found"}), 404
+
+    # Load latest result per suite
+    latest = {}
+    for json_file in results_dir.glob("*.json"):
+        if json_file.name.startswith("_"):
+            continue
+        suite_id = json_file.stem.split("_")[0]
+        mtime = json_file.stat().st_mtime
+        if suite_id not in latest or mtime > latest[suite_id][1]:
+            latest[suite_id] = (json_file, mtime)
+
+    # Build report
+    now = datetime.now().strftime("%Y-%m-%d %H:%M")
+    lines = [
+        f"# Bug Report — {project.get('name', project_id)}",
+        f"Generated: {now}\n",
+        "---\n",
+    ]
+
+    total_fail = total_warn = 0
+
+    for suite_id, (json_file, _) in sorted(latest.items()):
+        try:
+            data = json.loads(json_file.read_text())
+        except Exception:
+            continue
+
+        tests = data.get("tests", [])
+        bad = [t for t in tests if t.get("status") in ("fail", "warn")]
+        if not bad:
+            continue
+
+        suite_name = data.get("suite_name", suite_id)
+        suite_status = data.get("status", "?")
+        started = data.get("started_at", "")[:16].replace("T", " ")
+        lines.append(f"## {suite_name} [{suite_status.upper()}] — {started}\n")
+
+        for t in bad:
+            status = t.get("status", "?").upper()
+            module = t.get("module", "?")
+            msg = t.get("msg", "")
+            detail = t.get("detail", "")
+            dur = t.get("duration_ms", 0)
+
+            lines.append(f"### [{status}] `{module}`")
+            lines.append(f"**Message:** {msg}  ")
+            lines.append(f"**Duration:** {dur}ms\n")
+
+            if detail:
+                lines.append("**Detail:**")
+                lines.append("```")
+                lines.append(detail[:800])
+                lines.append("```\n")
+
+            if status == "FAIL":
+                total_fail += 1
+            else:
+                total_warn += 1
+
+    if total_fail == 0 and total_warn == 0:
+        lines = [f"# Bug Report — {project.get('name', project_id)}",
+                 f"Generated: {now}\n", "---\n",
+                 "## All suites passing — no issues found."]
+
+    lines.insert(3, f"**Summary:** {total_fail} failures, {total_warn} warnings\n")
+
+    md_content = "\n".join(lines)
+    filename = f"testlab_report_{project_id}_{datetime.now().strftime('%Y%m%d_%H%M')}.md"
+
+    from flask import Response
+    return Response(
+        md_content,
+        mimetype="text/markdown",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+
 if __name__ == "__main__":
     port = int(os.environ.get("TESTLAB_PORT", 9200))
     print(f"Universal TestLab running on http://localhost:{port}")

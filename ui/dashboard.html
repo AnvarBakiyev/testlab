@@ -152,6 +152,14 @@ async function runSuite(id) {
 load();
 setInterval(load, 30000);
 setInterval(updateRI, 5000);
+
+  function downloadReport(e) {
+    e.preventDefault();
+    const btn = document.getElementById('report-btn');
+    btn.textContent = '...';
+    window.location.href = '/api/testlab/report/' + PROJECT;
+    setTimeout(() => { btn.innerHTML = '⬇ Bug Report'; }, 1500);
+  }
 </script>
 </body>
 </html>
