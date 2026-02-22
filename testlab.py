@@ -14,7 +14,7 @@ import sys
 import os
 import json
 from pathlib import Path
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file
 
 # Добавляем testlab/ в sys.path чтобы import core.* и modules.* работал
 TESTLAB_ROOT = Path(__file__).parent
@@ -161,6 +161,36 @@ def run_all():
             for sr in suite_results
         ]
     })
+
+
+
+@app.route("/ui")
+def dashboard():
+    """Serve TestLab dashboard."""
+    return send_file(TESTLAB_ROOT / "ui" / "dashboard.html")
+
+
+@app.route("/api/testlab/history/<project_id>/<suite_id>")
+def suite_history(project_id: str, suite_id: str):
+    """Return last N historical runs for a suite."""
+    results_dir = TESTLAB_ROOT / "results" / project_id
+    limit = int(request.args.get("limit", 20))
+    if not results_dir.exists():
+        return jsonify({"status": "ok", "runs": []})
+    runs = []
+    pattern = f"{suite_id}_20*.json"  # timestamped files only
+    files = sorted(results_dir.glob(pattern), reverse=True)[:limit]
+    for f in files:
+        try:
+            data = json.loads(f.read_text())
+            runs.append({
+                "finished_at": data.get("finished_at", ""),
+                "status": data.get("status", ""),
+                "summary": data.get("summary", ""),
+            })
+        except Exception:
+            pass
+    return jsonify({"status": "ok", "project": project_id, "suite": suite_id, "runs": runs})
 
 
 @app.route("/api/testlab/health")

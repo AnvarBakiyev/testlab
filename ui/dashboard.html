@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TestLab xe2x80x94 Personal AGI</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #0f1117; color: #e2e8f0; min-height: 100vh; }
+  header { background: #1a1d27; border-bottom: 1px solid #2d3148; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; }
+  header h1 { font-size: 18px; font-weight: 600; }
+  header h1 span { color: #7c8cf8; }
+  .meta { display: flex; align-items: center; gap: 16px; font-size: 13px; color: #8892b0; }
+  .badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+  .badge-pass { background: #0d3320; color: #4ade80; border: 1px solid #16a34a; }
+  .badge-warn { background: #2d2500; color: #fbbf24; border: 1px solid #d97706; }
+  .badge-fail { background: #2d0f0f; color: #f87171; border: 1px solid #dc2626; }
+  .badge-idle { background: #1e1e2e; color: #8892b0; border: 1px solid #3d4168; }
+  main { padding: 24px; max-width: 1200px; margin: 0 auto; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; }
+  .card { background: #1a1d27; border: 1px solid #2d3148; border-radius: 10px; overflow: hidden; }
+  .card.pass { border-left: 3px solid #16a34a; }
+  .card.warn { border-left: 3px solid #d97706; }
+  .card.fail { border-left: 3px solid #dc2626; }
+  .card.idle { border-left: 3px solid #3d4168; }
+  .card-head { padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #2d3148; }
+  .card-title { font-size: 14px; font-weight: 600; }
+  .card-actions { display: flex; gap: 8px; align-items: center; }
+  .btn { background: #2d3148; border: 1px solid #4a5080; color: #a0aec0; padding: 4px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; }
+  .btn:hover { background: #3d4168; color: #e2e8f0; }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .card-body { padding: 12px 16px; }
+  .summary { font-size: 12px; color: #8892b0; margin-bottom: 10px; }
+  .tests { display: flex; flex-direction: column; gap: 5px; }
+  .test { display: flex; align-items: flex-start; gap: 8px; font-size: 12px; padding: 5px 8px; border-radius: 5px; background: #12141f; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; margin-top: 3px; flex-shrink: 0; }
+  .dot.pass { background: #4ade80; } .dot.warn { background: #fbbf24; } .dot.fail { background: #f87171; }
+  .tname { color: #a0aec0; min-width: 130px; font-weight: 500; }
+  .tmsg { color: #64748b; flex: 1; }
+  .tms { color: #3d4168; font-size: 11px; flex-shrink: 0; }
+  .tdetail { font-size: 11px; color: #f87171; background: #1a0808; border: 1px solid #3d1010; border-radius: 4px; padding: 4px 8px; margin-top: 4px; font-family: monospace; white-space: pre-wrap; word-break: break-all; }
+  .card-foot { padding: 8px 16px; border-top: 1px solid #2d3148; font-size: 11px; color: #3d4168; display: flex; justify-content: space-between; }
+  .spinner { display: inline-block; width: 10px; height: 10px; border: 2px solid #3d4168; border-top-color: #7c8cf8; border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 4px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .no-data { text-align: center; color: #3d4168; padding: 60px; font-size: 14px; }
+  .error { background: #2d0f0f; border: 1px solid #dc2626; color: #f87171; padding: 10px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; }
+  .refresh { font-size: 11px; color: #3d4168; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Test<span>Lab</span> xe2x80x94 Personal AGI</h1>
+  <div class="meta">
+    <span class="refresh" id="ri"></span>
+    <span id="ob" class="badge badge-idle">xe2x80x94</span>
+  </div>
+</header>
+<main>
+  <div id="err" class="error" style="display:none"></div>
+  <div id="grid" class="grid"><div class="no-data">Загрузка...</div></div>
+</main>
+<script>
+const PROJECT = 'personal_agi';
+const running = {};
+let lastRefresh = null;
+
+const SC = s => ({pass:'pass',warn:'warn',fail:'fail'}[s]||'idle');
+const SL = s => ({pass:'OK',warn:'WARN',fail:'FAIL'}[s]||'xe2x80x94');
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function fmtTime(iso) {
+  if (!iso) return 'xe2x80x94';
+  try {
+    const d = new Date(iso), now = new Date();
+    const m = Math.round((now-d)/60000);
+    if (m < 1) return 'только что';
+    if (m < 60) return m+' мин назад';
+    const h = Math.round(m/60);
+    if (h < 24) return h+'ч назад';
+    return d.toLocaleDateString('ru-RU');
+  } catch(e) { return iso.slice(0,16).replace('T',' '); }
+}
+
+function fmtMs(ms) {
+  if (ms==null) return '';
+  return ms < 1000 ? ms+'ms' : (ms/1000).toFixed(1)+'s';
+}
+
+function renderTest(t) {
+  const detail = (t.status!=='pass' && t.detail)
+    ? '<div class="tdetail">'+esc(t.detail.slice(0,200))+'</div>'
+    : '';
+  return '<div class="test"><div class="dot '+SC(t.status)+'"></div><div style="flex:1"><div style="display:flex;gap:8px"><span class="tname">'+esc(t.module)+'</span><span class="tmsg">'+esc(t.msg)+'</span><span class="tms">'+fmtMs(t.duration_ms)+'</span></div>'+detail+'</div></div>';
+}
+
+function renderSuite(s) {
+  const sc = SC(s.status);
+  const isR = running[s.suite_id];
+  const btn = isR ? '<span class="spinner"></span>запуск...' : '▶ Запустить';
+  const tests = (s.tests||[]).map(renderTest).join('');
+  const elapsed = (s.finished_at && s.started_at)
+    ? ((new Date(s.finished_at)-new Date(s.started_at))/1000).toFixed(2)+'s' : '';
+  return '<div class="card '+sc+'" id="card-'+s.suite_id+'">'+'<div class="card-head"><div class="card-title">'+esc(s.suite_name)+'</div>'+'<div class="card-actions"><span class="badge badge-'+sc+'">'+SL(s.status)+'</span>'+'<button class="btn" '+(isR?'disabled':'')+' onclick="runSuite(\''+s.suite_id+'\')">'+(isR?btn:btn)+'</button></div></div>'+'<div class="card-body"><div class="summary">'+esc(s.summary||'')+'</div>'+'<div class="tests">'+(tests||'<span style="color:#3d4168;font-size:12px">Нет данных</span>')+'</div></div>'+'<div class="card-foot"><span>'+fmtTime(s.finished_at)+'</span><span>'+elapsed+'</span></div></div>';
+}
+
+async function load() {
+  try {
+    const res = await fetch('/api/testlab/status/'+PROJECT);
+    if (!res.ok) throw new Error('HTTP '+res.status);
+    const data = await res.json();
+    document.getElementById('err').style.display = 'none';
+    const suites = (data.suites||[]).sort((a,b) => ({fail:0,warn:1,pass:2}[a.status]||3)-({fail:0,warn:1,pass:2}[b.status]||3));
+    if (!suites.length) { document.getElementById('grid').innerHTML = '<div class="no-data">Нет данных. Запустите тесты через CLI.</div>'; return; }
+    document.getElementById('grid').innerHTML = suites.map(renderSuite).join('');
+    const ov = suites.find(s=>s.status==='fail') ? 'fail' : suites.find(s=>s.status==='warn') ? 'warn' : 'pass';
+    const ob = document.getElementById('ob');
+    ob.className = 'badge badge-'+ov;
+    ob.textContent = SL(ov);
+    lastRefresh = new Date();
+    updateRI();
+  } catch(e) {
+    const err = document.getElementById('err');
+    err.style.display = 'block';
+    err.textContent = 'Не удалось загрузить: '+e.message;
+  }
+}
+
+function updateRI() {
+  const el = document.getElementById('ri');
+  if (!lastRefresh) return;
+  el.textContent = 'обновлено '+Math.round((new Date()-lastRefresh)/1000)+'с назад';
+}
+
+async function runSuite(id) {
+  if (running[id]) return;
+  running[id] = true;
+  await load();
+  try {
+    await fetch('/api/testlab/run', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({project:PROJECT,suite:id})});
+  } catch(e) {
+    document.getElementById('err').style.display='block';
+    document.getElementById('err').textContent='Ошибка: '+e.message;
+  } finally {
+    running[id] = false;
+    await load();
+  }
+}
+
+load();
+setInterval(load, 30000);
+setInterval(updateRI, 5000);
+</script>
+</body>
+</html>
