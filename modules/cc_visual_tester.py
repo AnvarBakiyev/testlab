@@ -96,18 +96,13 @@ def ask_claude_vision(image_bytes, api_key, context):
 def scroll_and_screenshot(page, shot_dir, name_prefix, api_key, section_name):
     bugs = []
     total_height = page.evaluate(
-        "(document.querySelector('.content-area') || document.querySelector('main') || document.body).scrollHeight"
+        "document.querySelector('.content') ? document.querySelector('.content').scrollHeight : document.body.scrollHeight"
     ) or 900
     scroll_positions = [0, total_height // 2, max(0, total_height - 900)]
     labels = ["top", "middle", "bottom"]
 
     for i, scroll_y in enumerate(scroll_positions):
-        page.evaluate(f"""
-            var el = document.querySelector('.content-area') ||
-                     document.querySelector('main') || document.scrollingElement;
-            if (el) el.scrollTop = {scroll_y};
-            else window.scrollTo(0, {scroll_y});
-        """)
+        page.evaluate(f"document.querySelector('.content').scrollTop = {scroll_y}")
         page.wait_for_timeout(800)
         shot_path = shot_dir / f"{name_prefix}_{i+1}_{labels[i]}.png"
         page.screenshot(path=str(shot_path), full_page=False)
@@ -115,11 +110,7 @@ def scroll_and_screenshot(page, shot_dir, name_prefix, api_key, section_name):
         bugs.extend(ask_claude_vision(shot_path.read_bytes(), api_key, context))
 
     # Reset scroll
-    page.evaluate("""
-        var el = document.querySelector('.content-area') ||
-                 document.querySelector('main') || document.scrollingElement;
-        if (el) el.scrollTop = 0;
-    """)
+    page.evaluate("document.querySelector('.content').scrollTop = 0")
     return bugs
 
 
@@ -148,22 +139,14 @@ def run_deep_scans(page, shot_dir, api_key):
     bugs.extend(ask_claude_vision(shot_path.read_bytes(), api_key, "Connectors: начальное состояние"))
 
     # Scroll down to see all connectors
-    page.evaluate("""
-        var el = document.querySelector('.content-area') ||
-                 document.querySelector('main') || document.scrollingElement;
-        if (el) el.scrollTop = 500;
-    """)
+    page.evaluate("document.querySelector('.content').scrollTop = 500")
     page.wait_for_timeout(600)
     shot_path = shot_dir / "Connectors_2_scrolled.png"
     page.screenshot(path=str(shot_path), full_page=False)
     bugs.extend(ask_claude_vision(shot_path.read_bytes(), api_key, "Connectors: список коннекторов (прокрутка вниз)"))
 
     # Reset scroll
-    page.evaluate("""
-        var el = document.querySelector('.content-area') ||
-                 document.querySelector('main') || document.scrollingElement;
-        if (el) el.scrollTop = 0;
-    """)
+    page.evaluate("document.querySelector('.content').scrollTop = 0")
     page.wait_for_timeout(400)
 
     # Click each Deep Scan button
