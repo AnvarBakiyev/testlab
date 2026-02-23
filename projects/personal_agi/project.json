@@ -405,6 +405,21 @@
           "config": {
             "bridge_port": 9300
           }
+        },
+        {
+          "module": "cc_text_audit",
+          "config": {}
+        }
+      ]
+    },
+    "cc_static_audit": {
+      "name": "CC Static Code Audit",
+      "description": "Static analysis of cc_main.js: raw snake_case values, missing label maps, bad UX text. No browser needed.",
+      "schedule": "every_30min",
+      "modules": [
+        {
+          "module": "cc_text_audit",
+          "config": {}
         }
       ]
     }
