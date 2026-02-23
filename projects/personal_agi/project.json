@@ -1,448 +1,465 @@
 {
-  "id": "personal_agi",
-  "name": "Personal AGI",
-  "description": "OODA daemon + Telegram bot + Command Center + Knowledge Graph",
-  "base_path": "/Users/anvarbakiyev/dronor",
-  "github_repo": "AnvarBakiyev/personal-agi",
-  "test_suites": {
-    "health": {
-      "name": "System Health",
-      "schedule": "every_5min",
-      "modules": [
-        {
-          "module": "health_check",
-          "config": {
-            "url": "http://localhost:9100/api/health"
-          }
-        },
-        {
-          "module": "process_monitor",
-          "config": {
-            "process": "agi_daemon.py"
-          }
-        },
-        {
-          "module": "sqlite_inspector",
-          "config": {
-            "db": "local_data/personal_agi/daemon_state.db",
-            "table": "daemon_runs",
-            "timestamp_col": "started_at",
-            "freshness_hours": 0.5
-          }
-        }
-      ]
-    },
-    "pipeline": {
-      "name": "Pipeline Integrity",
-      "schedule": "every_15min",
-      "modules": [
-        {
-          "module": "sqlite_inspector",
-          "config": {
-            "db": "local_data/personal_agi/events.db",
-            "table": "events",
-            "freshness_hours": 2
-          }
-        },
-        {
-          "module": "pipeline_completeness",
-          "config": {
-            "input_db": "local_data/personal_agi/events.db",
-            "input_query": "SELECT COUNT(*) FROM events WHERE created_at > datetime('now', '-1 hour')",
-            "output_db": "local_data/personal_agi/events.db",
-            "output_query": "SELECT COUNT(*) FROM events WHERE status IN ('processed','noted') AND created_at > datetime('now', '-1 hour')",
-            "tolerance_percent": 5
-          }
-        },
-        {
-          "module": "idempotency",
-          "config": {
-            "db": "local_data/personal_agi/daemon_state.db",
-            "dedup_table": "sent_notifications",
-            "dedup_key_col": "dedup_key",
-            "timestamp_col": "sent_at",
-            "window_hours": 24
-          }
-        },
-        {
-          "module": "canary_check",
-          "config": {
-            "events_db_path": "/Users/anvarbakiyev/dronor/local_data/personal_agi/events.db",
-            "max_age_minutes": 15
-          }
-        },
-        {
-          "module": "dead_letter_check",
-          "config": {
-            "state_db_path": "/Users/anvarbakiyev/dronor/local_data/personal_agi/daemon_state.db",
-            "window_hours": 24,
-            "max_allowed": 5
-          }
-        },
-        {
-          "module": "ooda_phase_balance",
-          "config": {
-            "state_db_path": "/Users/anvarbakiyev/dronor/local_data/personal_agi/daemon_state.db",
-            "lookback_runs": 20,
-            "min_action_ratio": 0.01
-          }
-        }
-      ]
-    },
-    "ux_quality": {
-      "name": "UX & Text Quality",
-      "schedule": "every_hour",
-      "modules": [
-        {
-          "module": "text_quality",
-          "config": {
-            "db": "local_data/personal_agi/daemon_state.db",
-            "query": "SELECT description FROM daemon_decisions ORDER BY timestamp DESC LIMIT 30",
-            "min_rows": 3,
-            "sample_size": 30,
-            "flesch_min": 40,
-            "max_notification_length": 500
-          }
-        },
-        {
-          "module": "telegram_callback_check",
-          "config": {
-            "pending_db_path": "/Users/anvarbakiyev/dronor/local_data/personal_agi/pending_actions.db",
-            "max_pending_age_hours": 72
-          }
-        },
-        {
-          "module": "command_center_api_check",
-          "config": {
-            "cc_path": "/Users/anvarbakiyev/dronor/apps/agi_command_center.py",
-            "min_persons": 100,
-            "methods": [
-              "get_overview",
-              "get_pending_actions",
-              "get_sync_state",
-              "dronor_health"
+    "id": "personal_agi",
+    "name": "Personal AGI",
+    "description": "OODA daemon + Telegram bot + Command Center + Knowledge Graph",
+    "base_path": "/Users/anvarbakiyev/dronor",
+    "github_repo": "AnvarBakiyev/personal-agi",
+    "test_suites": {
+        "health": {
+            "name": "System Health",
+            "schedule": "every_5min",
+            "modules": [
+                {
+                    "module": "health_check",
+                    "config": {
+                        "url": "http://localhost:9100/api/health"
+                    }
+                },
+                {
+                    "module": "process_monitor",
+                    "config": {
+                        "process": "agi_daemon.py"
+                    }
+                },
+                {
+                    "module": "sqlite_inspector",
+                    "config": {
+                        "db": "local_data/personal_agi/daemon_state.db",
+                        "table": "daemon_runs",
+                        "timestamp_col": "started_at",
+                        "freshness_hours": 0.5
+                    }
+                },
+                {
+                    "module": "file_size_guard",
+                    "config": {
+                        "checks": [
+                            {
+                                "path": "apps/agi_daemon.py",
+                                "max_lines": 1000,
+                                "label": "agi_daemon.py"
+                            },
+                            {
+                                "path": "apps/agi_command_center.py",
+                                "max_lines": 2000,
+                                "label": "agi_command_center.py"
+                            }
+                        ]
+                    }
+                }
             ]
-          }
-        }
-      ]
-    },
-    "e2e": {
-      "name": "E2E Scenarios",
-      "schedule": "on_demand",
-      "modules": [
-        {
-          "module": "health_check",
-          "config": {
-            "url": "http://localhost:9100/api/health",
-            "expect_status": 200
-          }
         },
-        {
-          "module": "sqlite_inspector",
-          "config": {
-            "db": "local_data/personal_agi/daemon_state.db",
-            "table": "daemon_runs",
-            "timestamp_col": "started_at",
-            "freshness_hours": 1,
-            "min_rows": 100
-          }
-        },
-        {
-          "module": "kg_health",
-          "config": {
-            "min_persons": 100,
-            "min_orgs": 10
-          }
-        },
-        {
-          "module": "telegram_ping",
-          "config": {
-            "token_file": "Desktop/credentials/telegram_token.txt"
-          }
-        }
-      ]
-    },
-    "monitoring": {
-      "name": "Monitoring",
-      "schedule": "every_5min",
-      "modules": [
-        {
-          "module": "watcher_freshness",
-          "config": {
-            "files": [
-              {
-                "path": "local_data/personal_agi/gmail_sync_state.json",
-                "label": "Gmail",
-                "freshness_hours": 2
-              },
-              {
-                "path": "local_data/personal_agi/gdrive_sync_state.json",
-                "label": "GDrive",
-                "freshness_hours": 2
-              }
+        "pipeline": {
+            "name": "Pipeline Integrity",
+            "schedule": "every_15min",
+            "modules": [
+                {
+                    "module": "sqlite_inspector",
+                    "config": {
+                        "db": "local_data/personal_agi/events.db",
+                        "table": "events",
+                        "freshness_hours": 2
+                    }
+                },
+                {
+                    "module": "pipeline_completeness",
+                    "config": {
+                        "input_db": "local_data/personal_agi/events.db",
+                        "input_query": "SELECT COUNT(*) FROM events WHERE created_at > datetime('now', '-1 hour')",
+                        "output_db": "local_data/personal_agi/events.db",
+                        "output_query": "SELECT COUNT(*) FROM events WHERE status IN ('processed','noted') AND created_at > datetime('now', '-1 hour')",
+                        "tolerance_percent": 5
+                    }
+                },
+                {
+                    "module": "idempotency",
+                    "config": {
+                        "db": "local_data/personal_agi/daemon_state.db",
+                        "dedup_table": "sent_notifications",
+                        "dedup_key_col": "dedup_key",
+                        "timestamp_col": "sent_at",
+                        "window_hours": 24
+                    }
+                },
+                {
+                    "module": "canary_check",
+                    "config": {
+                        "events_db_path": "/Users/anvarbakiyev/dronor/local_data/personal_agi/events.db",
+                        "max_age_minutes": 15
+                    }
+                },
+                {
+                    "module": "dead_letter_check",
+                    "config": {
+                        "state_db_path": "/Users/anvarbakiyev/dronor/local_data/personal_agi/daemon_state.db",
+                        "window_hours": 24,
+                        "max_allowed": 5
+                    }
+                },
+                {
+                    "module": "ooda_phase_balance",
+                    "config": {
+                        "state_db_path": "/Users/anvarbakiyev/dronor/local_data/personal_agi/daemon_state.db",
+                        "lookback_runs": 20,
+                        "min_action_ratio": 0.01
+                    }
+                }
             ]
-          }
         },
-        {
-          "module": "daemon_errors",
-          "config": {
-            "log_file": "logs/agi_daemon.log",
-            "tail_lines": 200,
-            "max_errors": 3
-          }
+        "ux_quality": {
+            "name": "UX & Text Quality",
+            "schedule": "every_hour",
+            "modules": [
+                {
+                    "module": "text_quality",
+                    "config": {
+                        "db": "local_data/personal_agi/daemon_state.db",
+                        "query": "SELECT description FROM daemon_decisions ORDER BY timestamp DESC LIMIT 30",
+                        "min_rows": 3,
+                        "sample_size": 30,
+                        "flesch_min": 40,
+                        "max_notification_length": 500
+                    }
+                },
+                {
+                    "module": "telegram_callback_check",
+                    "config": {
+                        "pending_db_path": "/Users/anvarbakiyev/dronor/local_data/personal_agi/pending_actions.db",
+                        "max_pending_age_hours": 72
+                    }
+                },
+                {
+                    "module": "command_center_api_check",
+                    "config": {
+                        "cc_path": "/Users/anvarbakiyev/dronor/apps/agi_command_center.py",
+                        "min_persons": 100,
+                        "methods": [
+                            "get_overview",
+                            "get_pending_actions",
+                            "get_sync_state",
+                            "dronor_health"
+                        ]
+                    }
+                }
+            ]
         },
-        {
-          "module": "cars_activity",
-          "config": {
-            "db": "local_data/personal_agi/daemon_state.db",
-            "window_hours": 24,
-            "min_decisions": 1
-          }
+        "e2e": {
+            "name": "E2E Scenarios",
+            "schedule": "on_demand",
+            "modules": [
+                {
+                    "module": "health_check",
+                    "config": {
+                        "url": "http://localhost:9100/api/health",
+                        "expect_status": 200
+                    }
+                },
+                {
+                    "module": "sqlite_inspector",
+                    "config": {
+                        "db": "local_data/personal_agi/daemon_state.db",
+                        "table": "daemon_runs",
+                        "timestamp_col": "started_at",
+                        "freshness_hours": 1,
+                        "min_rows": 100
+                    }
+                },
+                {
+                    "module": "kg_health",
+                    "config": {
+                        "min_persons": 100,
+                        "min_orgs": 10
+                    }
+                },
+                {
+                    "module": "telegram_ping",
+                    "config": {
+                        "token_file": "Desktop/credentials/telegram_token.txt"
+                    }
+                }
+            ]
         },
-        {
-          "module": "pending_aging",
-          "config": {
-            "db": "local_data/personal_agi/pending_actions.db",
-            "stale_hours": 48,
-            "max_stale": 0
-          }
+        "monitoring": {
+            "name": "Monitoring",
+            "schedule": "every_5min",
+            "modules": [
+                {
+                    "module": "watcher_freshness",
+                    "config": {
+                        "files": [
+                            {
+                                "path": "local_data/personal_agi/gmail_sync_state.json",
+                                "label": "Gmail",
+                                "freshness_hours": 2
+                            },
+                            {
+                                "path": "local_data/personal_agi/gdrive_sync_state.json",
+                                "label": "GDrive",
+                                "freshness_hours": 2
+                            }
+                        ]
+                    }
+                },
+                {
+                    "module": "daemon_errors",
+                    "config": {
+                        "log_file": "logs/agi_daemon.log",
+                        "tail_lines": 200,
+                        "max_errors": 3
+                    }
+                },
+                {
+                    "module": "cars_activity",
+                    "config": {
+                        "db": "local_data/personal_agi/daemon_state.db",
+                        "window_hours": 24,
+                        "min_decisions": 1
+                    }
+                },
+                {
+                    "module": "pending_aging",
+                    "config": {
+                        "db": "local_data/personal_agi/pending_actions.db",
+                        "stale_hours": 48,
+                        "max_stale": 0
+                    }
+                }
+            ]
+        },
+        "llm_judge": {
+            "name": "LLM Decision Judge",
+            "schedule": "daily_09",
+            "modules": [
+                {
+                    "module": "llm_judge",
+                    "config": {
+                        "db": "local_data/personal_agi/daemon_state.db",
+                        "api_key_file": "/Users/anvarbakiyev/Desktop/credentials/claude_api_key.txt",
+                        "sample_size": 7,
+                        "model": "claude-haiku-4-5-20251001",
+                        "fail_threshold": 0.5,
+                        "warn_threshold": 0.2
+                    }
+                }
+            ]
+        },
+        "cc_memory_health": {
+            "name": "CC & Memory Health",
+            "modules": [
+                {
+                    "module": "memory_block_freshness",
+                    "config": {
+                        "warn_days": 7,
+                        "fail_days": 21
+                    }
+                },
+                {
+                    "module": "memory_writers_active",
+                    "config": {
+                        "max_hours": 48
+                    }
+                },
+                {
+                    "module": "kg_freshness",
+                    "config": {
+                        "warn_days": 3,
+                        "fail_days": 7
+                    }
+                },
+                {
+                    "module": "cc_memory_renderer",
+                    "config": {}
+                },
+                {
+                    "module": "cc_log_leakage",
+                    "config": {
+                        "sample_size": 50
+                    }
+                },
+                {
+                    "module": "cc_pending_duplicates",
+                    "config": {
+                        "max_per_contact": 2
+                    }
+                },
+                {
+                    "module": "pending_text_quality",
+                    "config": {
+                        "sample_size": 20
+                    }
+                },
+                {
+                    "module": "pending_buttons_check",
+                    "config": {
+                        "sample_size": 30
+                    }
+                },
+                {
+                    "module": "connector_config_check",
+                    "config": {
+                        "check_experts_exist": true
+                    }
+                },
+                {
+                    "module": "oauth_token_health",
+                    "config": {}
+                },
+                {
+                    "module": "daemon_config_expert_refs",
+                    "config": {}
+                },
+                {
+                    "module": "daemon_activity_check",
+                    "config": {
+                        "max_silence_minutes": 30,
+                        "min_decisions_per_hour": 2
+                    }
+                },
+                {
+                    "module": "update_kg_wiring",
+                    "config": {}
+                }
+            ]
+        },
+        "cc_audit": {
+            "name": "CC Full Audit",
+            "schedule": "every_30min",
+            "modules": [
+                {
+                    "module": "pending_duplicates_deep",
+                    "config": {}
+                },
+                {
+                    "module": "pending_age_audit",
+                    "config": {
+                        "warn_hours": 24,
+                        "fail_hours": 72
+                    }
+                },
+                {
+                    "module": "pending_orphans_audit",
+                    "config": {}
+                },
+                {
+                    "module": "draft_quality_audit",
+                    "config": {}
+                },
+                {
+                    "module": "cars_distribution_audit",
+                    "config": {}
+                },
+                {
+                    "module": "feedback_loop_audit",
+                    "config": {}
+                },
+                {
+                    "module": "events_pipeline_audit",
+                    "config": {}
+                },
+                {
+                    "module": "daemon_health_audit",
+                    "config": {}
+                },
+                {
+                    "module": "auto_reply_audit",
+                    "config": {}
+                },
+                {
+                    "module": "knowledge_db_audit",
+                    "config": {}
+                }
+            ]
+        },
+        "e2e_smoke": {
+            "name": "E2E Smoke (CC API)",
+            "description": "End-to-end tests via CC Python API — no browser needed",
+            "modules": [
+                {
+                    "module": "e2e_dronor_api",
+                    "config": {}
+                },
+                {
+                    "module": "e2e_overview_loads",
+                    "config": {}
+                },
+                {
+                    "module": "e2e_pending_loads",
+                    "config": {}
+                },
+                {
+                    "module": "e2e_resolve_action",
+                    "config": {}
+                },
+                {
+                    "module": "e2e_bulk_resolve",
+                    "config": {}
+                },
+                {
+                    "module": "e2e_feedback_stats",
+                    "config": {}
+                },
+                {
+                    "module": "e2e_events_screen",
+                    "config": {}
+                },
+                {
+                    "module": "e2e_core_memory",
+                    "config": {}
+                },
+                {
+                    "module": "e2e_activity_log",
+                    "config": {}
+                }
+            ]
+        },
+        "cc_browser": {
+            "name": "CC Browser Audit",
+            "description": "Playwright: opens CC in headless Chrome, clicks all nav sections and buttons, catches JS errors, duplicates, stuck loaders, bad texts",
+            "schedule": "on_demand",
+            "modules": [
+                {
+                    "module": "cc_browser_audit",
+                    "config": {
+                        "bridge_port": 9300
+                    }
+                },
+                {
+                    "module": "cc_text_audit",
+                    "config": {}
+                }
+            ]
+        },
+        "cc_static_audit": {
+            "name": "CC Static Code Audit",
+            "description": "Static analysis of cc_main.js: raw snake_case values, missing label maps, bad UX text. No browser needed.",
+            "schedule": "every_30min",
+            "modules": [
+                {
+                    "module": "cc_text_audit",
+                    "config": {}
+                }
+            ]
+        },
+        "cc_visual": {
+            "name": "CC Visual Test (Claude Vision)",
+            "schedule": "on_demand",
+            "description": "Playwright opens each CC section, takes screenshot, sends to Claude Vision to find visual bugs, duplicates, errors",
+            "modules": [
+                {
+                    "module": "cc_visual_tester",
+                    "config": {
+                        "bridge_port": 9300,
+                        "anthropic_key_path": "/Users/anvarbakiyev/Desktop/credentials/anthropic_api_key.txt",
+                        "screenshot_dir": "/tmp/cc_visual_test"
+                    }
+                }
+            ]
         }
-      ]
     },
-    "llm_judge": {
-      "name": "LLM Decision Judge",
-      "schedule": "daily_09",
-      "modules": [
-        {
-          "module": "llm_judge",
-          "config": {
-            "db": "local_data/personal_agi/daemon_state.db",
-            "api_key_file": "/Users/anvarbakiyev/Desktop/credentials/claude_api_key.txt",
-            "sample_size": 7,
-            "model": "claude-haiku-4-5-20251001",
-            "fail_threshold": 0.5,
-            "warn_threshold": 0.2
-          }
-        }
-      ]
-    },
-    "cc_memory_health": {
-      "name": "CC & Memory Health",
-      "modules": [
-        {
-          "module": "memory_block_freshness",
-          "config": {
-            "warn_days": 7,
-            "fail_days": 21
-          }
-        },
-        {
-          "module": "memory_writers_active",
-          "config": {
-            "max_hours": 48
-          }
-        },
-        {
-          "module": "kg_freshness",
-          "config": {
-            "warn_days": 3,
-            "fail_days": 7
-          }
-        },
-        {
-          "module": "cc_memory_renderer",
-          "config": {}
-        },
-        {
-          "module": "cc_log_leakage",
-          "config": {
-            "sample_size": 50
-          }
-        },
-        {
-          "module": "cc_pending_duplicates",
-          "config": {
-            "max_per_contact": 2
-          }
-        },
-        {
-          "module": "pending_text_quality",
-          "config": {
-            "sample_size": 20
-          }
-        },
-        {
-          "module": "pending_buttons_check",
-          "config": {
-            "sample_size": 30
-          }
-        },
-        {
-          "module": "connector_config_check",
-          "config": {
-            "check_experts_exist": true
-          }
-        },
-        {
-          "module": "oauth_token_health",
-          "config": {}
-        },
-        {
-          "module": "daemon_config_expert_refs",
-          "config": {}
-        },
-        {
-          "module": "daemon_activity_check",
-          "config": {
-            "max_silence_minutes": 30,
-            "min_decisions_per_hour": 2
-          }
-        },
-        {
-          "module": "update_kg_wiring",
-          "config": {}
-        }
-      ]
-    },
-    "cc_audit": {
-      "name": "CC Full Audit",
-      "schedule": "every_30min",
-      "modules": [
-        {
-          "module": "pending_duplicates_deep",
-          "config": {}
-        },
-        {
-          "module": "pending_age_audit",
-          "config": {
-            "warn_hours": 24,
-            "fail_hours": 72
-          }
-        },
-        {
-          "module": "pending_orphans_audit",
-          "config": {}
-        },
-        {
-          "module": "draft_quality_audit",
-          "config": {}
-        },
-        {
-          "module": "cars_distribution_audit",
-          "config": {}
-        },
-        {
-          "module": "feedback_loop_audit",
-          "config": {}
-        },
-        {
-          "module": "events_pipeline_audit",
-          "config": {}
-        },
-        {
-          "module": "daemon_health_audit",
-          "config": {}
-        },
-        {
-          "module": "auto_reply_audit",
-          "config": {}
-        },
-        {
-          "module": "knowledge_db_audit",
-          "config": {}
-        }
-      ]
-    },
-    "e2e_smoke": {
-      "name": "E2E Smoke (CC API)",
-      "description": "End-to-end tests via CC Python API — no browser needed",
-      "modules": [
-        {
-          "module": "e2e_dronor_api",
-          "config": {}
-        },
-        {
-          "module": "e2e_overview_loads",
-          "config": {}
-        },
-        {
-          "module": "e2e_pending_loads",
-          "config": {}
-        },
-        {
-          "module": "e2e_resolve_action",
-          "config": {}
-        },
-        {
-          "module": "e2e_bulk_resolve",
-          "config": {}
-        },
-        {
-          "module": "e2e_feedback_stats",
-          "config": {}
-        },
-        {
-          "module": "e2e_events_screen",
-          "config": {}
-        },
-        {
-          "module": "e2e_core_memory",
-          "config": {}
-        },
-        {
-          "module": "e2e_activity_log",
-          "config": {}
-        }
-      ]
-    },
-    "cc_browser": {
-      "name": "CC Browser Audit",
-      "description": "Playwright: opens CC in headless Chrome, clicks all nav sections and buttons, catches JS errors, duplicates, stuck loaders, bad texts",
-      "schedule": "on_demand",
-      "modules": [
-        {
-          "module": "cc_browser_audit",
-          "config": {
-            "bridge_port": 9300
-          }
-        },
-        {
-          "module": "cc_text_audit",
-          "config": {}
-        }
-      ]
-    },
-    "cc_static_audit": {
-      "name": "CC Static Code Audit",
-      "description": "Static analysis of cc_main.js: raw snake_case values, missing label maps, bad UX text. No browser needed.",
-      "schedule": "every_30min",
-      "modules": [
-        {
-          "module": "cc_text_audit",
-          "config": {}
-        }
-      ]
-    },
-    "cc_visual": {
-      "name": "CC Visual Test (Claude Vision)",
-      "schedule": "on_demand",
-      "description": "Playwright opens each CC section, takes screenshot, sends to Claude Vision to find visual bugs, duplicates, errors",
-      "modules": [
-        {
-          "module": "cc_visual_tester",
-          "config": {
-            "bridge_port": 9300,
-            "anthropic_key_path": "/Users/anvarbakiyev/Desktop/credentials/anthropic_api_key.txt",
-            "screenshot_dir": "/tmp/cc_visual_test"
-          }
-        }
-      ]
+    "_base_path_note": "Set env var TESTLAB_BASE_PATH_PERSONAL_AGI or TESTLAB_BASE_PATH to override",
+    "wiki_path": "personal-agi/status.md",
+    "notifications": {
+        "telegram_chat_id": "958418",
+        "token_file": "/Users/anvarbakiyev/Desktop/credentials/telegram_token.txt"
     }
-  },
-  "_base_path_note": "Set env var TESTLAB_BASE_PATH_PERSONAL_AGI or TESTLAB_BASE_PATH to override",
-  "wiki_path": "personal-agi/status.md",
-  "notifications": {
-    "telegram_chat_id": "958418",
-    "token_file": "/Users/anvarbakiyev/Desktop/credentials/telegram_token.txt"
-  }
 }
