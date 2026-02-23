@@ -304,7 +304,7 @@ def generate_report(project_id: str):
     for json_file in results_dir.glob("*.json"):
         if json_file.name.startswith("_"):
             continue
-        suite_id = json_file.stem.split("_")[0]
+        suite_id = (json.loads(json_file.read_text()).get("suite_id") or json_file.stem.split("_")[0])
         mtime = json_file.stat().st_mtime
         if suite_id not in latest or mtime > latest[suite_id][1]:
             latest[suite_id] = (json_file, mtime)
