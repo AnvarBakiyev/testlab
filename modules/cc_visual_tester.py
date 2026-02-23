@@ -59,14 +59,18 @@ VISION_PROMPT = """Ты QA-инженер. Анализируй скриншот
 
 
 def find_cc_port():
-    result = subprocess.run(["lsof", "-i", "-P", "-n"], capture_output=True, text=True)
-    for line in result.stdout.splitlines():
-        if "python" in line.lower() and "listen" in line.lower():
-            m = re.search(r'127\.0\.0\.1:(\d+)\s+\(LISTEN\)', line)
-            if m:
-                port = int(m.group(1))
-                if port not in (9300, 9200, 9100):
-                    return port
+    """Find CC port by HTTP probe — works regardless of lsof permissions."""
+    import urllib.request as _req
+    candidates = list(range(60000, 60300)) + list(range(49152, 49300)) + list(range(50000, 50200))
+    for port in candidates:
+        if port in (9300, 9200, 9100):
+            continue
+        try:
+            resp = _req.urlopen(f"http://127.0.0.1:{port}/cc_ui.html", timeout=0.3)
+            if resp.status == 200:
+                return port
+        except Exception:
+            continue
     return None
 
 
