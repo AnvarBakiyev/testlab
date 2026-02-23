@@ -51,7 +51,7 @@ def run(config: dict) -> TestResult:
 
     try:
         proc = subprocess.run(
-            ["python3", script_path],
+            ["/usr/local/bin/python3", script_path],  # system python lacks kuzu
             capture_output=True, text=True, timeout=60
         )
     except subprocess.TimeoutExpired:
