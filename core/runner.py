@@ -54,7 +54,9 @@ def run_all_suites(project_config: dict) -> list:
 def _run_module(module_name: str, config: dict) -> TestResult:
     t0 = time.monotonic()
     try:
-        mod = importlib.import_module(f"modules.{module_name}")
+        full_name = f"modules.{module_name}"
+        mod = importlib.import_module(full_name)
+        importlib.reload(mod)  # Always reload — picks up file changes without server restart
         result = mod.run(config)
     except Exception:
         result = TestResult(

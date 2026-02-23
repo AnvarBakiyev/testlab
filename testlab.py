@@ -116,6 +116,60 @@ def run_one():
     })
 
 
+
+# --- Async suite runner ---
+import threading
+import uuid as _uuid
+
+_async_jobs = {}  # job_id -> {status, result}
+
+@app.route("/api/testlab/run_async", methods=["POST"])
+def run_async():
+    """Start suite in background thread. Returns job_id immediately."""
+    body = request.get_json() or {}
+    project_id = body.get("project")
+    suite_id = body.get("suite")
+
+    if not project_id or not suite_id:
+        return jsonify({"status": "error", "msg": "project and suite required"}), 400
+
+    cfg = _load_project(project_id)
+    if not cfg:
+        return jsonify({"status": "error", "msg": f"Project not found: {project_id}"}), 404
+
+    if suite_id not in cfg["test_suites"]:
+        return jsonify({"status": "error", "msg": f"Suite not found: {suite_id}",
+                        "available": list(cfg["test_suites"].keys())}), 404
+
+    job_id = str(_uuid.uuid4())[:8]
+    _async_jobs[job_id] = {"status": "running", "suite": suite_id, "project": project_id}
+
+    def _run():
+        try:
+            result = run_suite(cfg, suite_id)
+            reporter.save_json(result, TESTLAB_ROOT)
+            _async_jobs[job_id] = {
+                "status": "done",
+                "suite_status": result.status,
+                "summary": result.summary,
+                "tests": [t.to_dict() for t in result.tests]
+            }
+        except Exception as e:
+            _async_jobs[job_id] = {"status": "error", "msg": str(e)}
+
+    threading.Thread(target=_run, daemon=True).start()
+    return jsonify({"status": "started", "job_id": job_id})
+
+
+@app.route("/api/testlab/job/<job_id>")
+def job_status(job_id):
+    """Poll async job status."""
+    job = _async_jobs.get(job_id)
+    if not job:
+        return jsonify({"status": "not_found"}), 404
+    return jsonify(job)
+
+
 @app.route("/api/testlab/run_all", methods=["POST"])
 def run_all():
     """Run all suites for a project. Body: {project, push_github=false}"""
