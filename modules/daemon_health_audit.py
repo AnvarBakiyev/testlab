@@ -1,11 +1,15 @@
 """
 daemon_health_audit — run frequency, error rate, DLQ, last run recency.
+
+Fix: errors column stores JSON string "[]" or "[...]", not an integer.
+Use json_array_length() to count actual errors.
 """
 import sqlite3
 from datetime import datetime, timezone
 from core.base import TestResult
 
 DB = '/Users/anvarbakiyev/dronor/local_data/personal_agi/daemon_state.db'
+
 
 def run(config: dict) -> TestResult:
     conn = sqlite3.connect(DB)
@@ -17,9 +21,15 @@ def run(config: dict) -> TestResult:
     total_24h = conn.execute(
         "SELECT COUNT(*) FROM daemon_runs WHERE started_at > datetime('now', '-24 hours')"
     ).fetchone()[0]
+
+    # FIX: errors is a JSON string like "[]" or "[{...}]"
+    # json_array_length returns 0 for "[]", >0 for actual errors
     error_24h = conn.execute(
-        "SELECT COUNT(*) FROM daemon_runs WHERE started_at > datetime('now', '-24 hours') AND errors > 0"
+        "SELECT COUNT(*) FROM daemon_runs "
+        "WHERE started_at > datetime('now', '-24 hours') "
+        "AND json_array_length(errors) > 0"
     ).fetchone()[0]
+
     dlq = conn.execute("SELECT COUNT(*) FROM dead_letter_queue").fetchone()[0]
     decisions_24h = conn.execute(
         "SELECT action_type, COUNT(*) as cnt FROM daemon_decisions "
@@ -51,13 +61,13 @@ def run(config: dict) -> TestResult:
 
     issues = []
     if last_run_age_min and last_run_age_min > 10:
-        issues.append(f'Last run {last_run_age_min}min ago (expected <5min)')
+        issues.append(f'Last run {last_run_age_min}min ago (expected <10min)')
     if error_rate > 20:
         issues.append(f'Error rate {error_rate}% in last 24h')
     if dlq > 0:
         issues.append(f'{dlq} events in dead letter queue')
     if total_24h < 50:
-        issues.append(f'Only {total_24h} runs in 24h (expected /Users/anvarbakiyev288)')
+        issues.append(f'Only {total_24h} runs in 24h (expected >288)')
 
     if issues:
         return TestResult('fail', ' | '.join(issues), '; '.join(issues), data)
