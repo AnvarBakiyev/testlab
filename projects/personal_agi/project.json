@@ -10,6 +10,10 @@
             "schedule": "every_5min",
             "modules": [
                 {
+                    "module": "daemon_import_check",
+                    "config": {}
+                },
+                {
                     "module": "health_check",
                     "config": {
                         "url": "http://localhost:9100/api/health"
