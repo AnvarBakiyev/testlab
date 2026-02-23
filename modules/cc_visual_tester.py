@@ -156,7 +156,7 @@ def run(cfg: dict):
 
         # Inject bridge shim
         page.add_init_script(path=f"/Users/anvarbakiyev/dronor/apps/pywebview_shim.js")
-        page.goto(f"http://127.0.0.1:{cc_port}", wait_until="domcontentloaded")
+        page.goto(f"http://127.0.0.1:{cc_port}/cc_ui.html", wait_until="domcontentloaded")
         page.wait_for_timeout(1500)
 
         sections_to_test = cfg.get("sections", [s["nav"] for s in SECTIONS])
@@ -168,21 +168,16 @@ def run(cfg: dict):
 
             # Navigate to section
             try:
-                page.click(f"text={nav_name}", timeout=3000)
-                page.wait_for_timeout(1200)
-            except Exception:
-                # Try sidebar nav
-                try:
-                    page.locator(".nav-item").filter(has_text=nav_name).click(timeout=3000)
-                    page.wait_for_timeout(1200)
-                except Exception:
-                    all_bugs.append({
-                        "section": nav_name,
-                        "after_click": None,
-                        "severity": "warning",
-                        "description": f"Не удалось открыть секцию '{nav_name}'"
-                    })
-                    continue
+                page.locator(".nav-item", has_text=nav_name).first.click()
+                page.wait_for_timeout(1500)
+            except Exception as e:
+                all_bugs.append({
+                    "section": nav_name,
+                    "after_click": None,
+                    "severity": "warning",
+                    "description": f"Не удалось открыть секцию '{nav_name}': {e}"
+                })
+                continue
 
             # Screenshot of section
             shot_path = screenshot_dir / f"{nav_name.replace(' ', '_')}_load.png"
