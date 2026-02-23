@@ -516,6 +516,37 @@ def run_audit_report():
     from flask import Response
     return Response(html, mimetype="text/html")
 
+
+
+@app.route("/api/testlab/screenshots/<path:filename>")
+def serve_screenshot(filename):
+    """Serve a screenshot file from /tmp/cc_visual_test/ by filename."""
+    from flask import send_from_directory
+    screenshot_dir = "/tmp/cc_visual_test"
+    return send_from_directory(screenshot_dir, filename)
+
+
+@app.route("/api/testlab/screenshots")
+def list_screenshots():
+    """List all available screenshots from the last cc_visual run."""
+    from pathlib import Path
+    shot_dir = Path("/tmp/cc_visual_test")
+    if not shot_dir.exists():
+        return jsonify({"status": "ok", "screenshots": []})
+    files = sorted(shot_dir.glob("*.png"))
+    return jsonify({
+        "status": "ok",
+        "count": len(files),
+        "screenshots": [
+            {
+                "name": f.name,
+                "url": f"/api/testlab/screenshots/{f.name}",
+                "size_kb": round(f.stat().st_size / 1024, 1)
+            }
+            for f in files
+        ]
+    })
+
 if __name__ == "__main__":
     port = int(os.environ.get("TESTLAB_PORT", 9200))
     print(f"Universal TestLab running on http://localhost:{port}")
