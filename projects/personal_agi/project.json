@@ -394,6 +394,19 @@
           "config": {}
         }
       ]
+    },
+    "cc_browser": {
+      "name": "CC Browser Audit",
+      "description": "Playwright: opens CC in headless Chrome, clicks all nav sections and buttons, catches JS errors, duplicates, stuck loaders, bad texts",
+      "schedule": "on_demand",
+      "modules": [
+        {
+          "module": "cc_browser_audit",
+          "config": {
+            "bridge_port": 9300
+          }
+        }
+      ]
     }
   },
   "_base_path_note": "Set env var TESTLAB_BASE_PATH_PERSONAL_AGI or TESTLAB_BASE_PATH to override",
