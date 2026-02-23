@@ -1,55 +1,47 @@
 """
-CC Visual Tester — Playwright + Claude Vision.
+CC Visual Tester v2 — Playwright + Claude Vision.
 
-Для каждой секции CC:
-1. Открывает секцию в браузере
-2. Делает скриншот
-3. Если есть кнопки — кликает, ждёт, делает ещё скриншот
-4. Отправляет скриншот в Claude Vision API
-5. Claude говорит: есть ли баги, дубли, сломанный UI
-
-Результат: конкретные описания багов на русском языке.
+Стратегия:
+- 3 скриншота на секцию: верх, середина (после скролла), низ страницы
+- 5 секунд ожидания после навигации (данные должны загрузиться)
+- Connectors: каждый Deep Scan по очереди, ждём завершения, закрываем модал
+- Каждый скриншот анализирует Claude Vision отдельно
 
 config:
   bridge_port: 9300
   anthropic_key_path: /Users/anvarbakiyev/Desktop/credentials/anthropic_api_key.txt
   screenshot_dir: /tmp/cc_visual_test
-  sections: список секций (по умолчанию все)
 """
 import base64
 import json
-import os
 import re
-import subprocess
-import time
 import urllib.request
-import urllib.error
 from pathlib import Path
 
 
 SECTIONS = [
-    {"nav": "Overview",       "click_btns": []},
-    {"nav": "People",          "click_btns": []},
-    {"nav": "Organizations",   "click_btns": []},
-    {"nav": "Pending Actions",  "click_btns": []},
-    {"nav": "Memory",          "click_btns": []},
-    {"nav": "CARS Analytics",  "click_btns": []},
-    {"nav": "Auto-Reply",      "click_btns": []},
-    {"nav": "Connectors",      "click_btns": ["Quick Sync"]},
-    {"nav": "KG Sync",         "click_btns": ["Deep Scan"]},
-    {"nav": "Analytics",       "click_btns": []},
+    {"nav": "Overview",        "mode": "scroll_only"},
+    {"nav": "People",          "mode": "scroll_only"},
+    {"nav": "Organizations",   "mode": "scroll_only"},
+    {"nav": "Pending Actions", "mode": "scroll_only"},
+    {"nav": "Memory",          "mode": "scroll_only"},
+    {"nav": "CARS Analytics",  "mode": "scroll_only"},
+    {"nav": "Auto-Reply",      "mode": "scroll_only"},
+    {"nav": "Connectors",      "mode": "deep_scan_all"},
+    {"nav": "KG Sync",         "mode": "scroll_only"},
+    {"nav": "Analytics",       "mode": "scroll_only"},
 ]
 
-# Промпт для Claude Vision — конкретный, без воды
 VISION_PROMPT = """Ты QA-инженер. Анализируй скриншот интерфейса AGI Command Center.
 
 Найди ТОЛЬКО реальные проблемы:
 - Дублирующиеся строки (один и тот же элемент показан дважды и более)
-- Текст ошибок (красные сообщения, Error:, Exception:, failed)
-- Технические идентификаторы видимые пользователю (snake_case, uuid, None, undefined)
-- Застрявшие индикаторы загрузки (Loading..., spinner)
+- Текст ошибок (красные сообщения, Error:, Exception:, failed, traceback)
+- Технические идентификаторы видимые пользователю (snake_case, uuid, None, undefined, null)
+- Застрявшие индикаторы загрузки (Loading..., spinner без данных)
 - Пустые секции где явно должны быть данные
-- Кнопки или элементы с явно неправильным состоянием
+- Сырой JSON или XML виден напрямую пользователю
+- Кнопки или элементы в неправильном состоянии
 
 Формат ответа — строго JSON:
 {"bugs": [{"severity": "critical|warning|info", "description": "конкретное описание на русском"}]}
@@ -59,14 +51,12 @@ VISION_PROMPT = """Ты QA-инженер. Анализируй скриншот
 
 
 def find_cc_port():
-    """Find CC port by HTTP probe — works regardless of lsof permissions."""
-    import urllib.request as _req
     candidates = list(range(60000, 60300)) + list(range(49152, 49300)) + list(range(50000, 50200))
     for port in candidates:
         if port in (9300, 9200, 9100):
             continue
         try:
-            resp = _req.urlopen(f"http://127.0.0.1:{port}/cc_ui.html", timeout=0.3)
+            resp = urllib.request.urlopen(f"http://127.0.0.1:{port}/cc_ui.html", timeout=0.3)
             if resp.status == 200:
                 return port
         except Exception:
@@ -74,94 +64,194 @@ def find_cc_port():
     return None
 
 
-def ask_claude_vision(image_bytes: bytes, api_key: str, context: str) -> list:
-    """Send screenshot to Claude Vision, return list of bugs."""
+def ask_claude_vision(image_bytes, api_key, context):
     image_b64 = base64.standard_b64encode(image_bytes).decode()
-
     payload = {
         "model": "claude-opus-4-5",
         "max_tokens": 1024,
         "messages": [{
             "role": "user",
             "content": [
-                {
-                    "type": "image",
-                    "source": {
-                        "type": "base64",
-                        "media_type": "image/png",
-                        "data": image_b64
-                    }
-                },
-                {
-                    "type": "text",
-                    "text": VISION_PROMPT + f"\n\nКонтекст: {context}"
-                }
+                {"type": "image", "source": {"type": "base64", "media_type": "image/png", "data": image_b64}},
+                {"type": "text", "text": VISION_PROMPT + f"\n\nКонтекст: {context}"}
             ]
         }]
     }
-
     req = urllib.request.Request(
         "https://api.anthropic.com/v1/messages",
         data=json.dumps(payload).encode(),
-        headers={
-            "Content-Type": "application/json",
-            "x-api-key": api_key,
-            "anthropic-version": "2023-06-01"
-        }
+        headers={"Content-Type": "application/json", "x-api-key": api_key, "anthropic-version": "2023-06-01"}
     )
-
     try:
         with urllib.request.urlopen(req, timeout=30) as resp:
             data = json.loads(resp.read())
         text = data["content"][0]["text"].strip()
-        # Strip markdown code fences if present
         text = re.sub(r'^```[a-z]*\s*', '', text)
         text = re.sub(r'\s*```$', '', text)
-        result = json.loads(text)
-        return result.get("bugs", [])
+        return json.loads(text).get("bugs", [])
     except Exception as e:
         return [{"severity": "info", "description": f"Vision API error: {e}"}]
 
 
-def run(cfg: dict):
+def scroll_and_screenshot(page, shot_dir, name_prefix, api_key, section_name):
+    bugs = []
+    total_height = page.evaluate(
+        "(document.querySelector('.content-area') || document.querySelector('main') || document.body).scrollHeight"
+    ) or 900
+    scroll_positions = [0, total_height // 2, max(0, total_height - 900)]
+    labels = ["top", "middle", "bottom"]
+
+    for i, scroll_y in enumerate(scroll_positions):
+        page.evaluate(f"""
+            var el = document.querySelector('.content-area') ||
+                     document.querySelector('main') || document.scrollingElement;
+            if (el) el.scrollTop = {scroll_y};
+            else window.scrollTo(0, {scroll_y});
+        """)
+        page.wait_for_timeout(800)
+        shot_path = shot_dir / f"{name_prefix}_{i+1}_{labels[i]}.png"
+        page.screenshot(path=str(shot_path), full_page=False)
+        context = f"Секция '{section_name}', скролл: {labels[i]} (y={scroll_y}px)"
+        bugs.extend(ask_claude_vision(shot_path.read_bytes(), api_key, context))
+
+    # Reset scroll
+    page.evaluate("""
+        var el = document.querySelector('.content-area') ||
+                 document.querySelector('main') || document.scrollingElement;
+        if (el) el.scrollTop = 0;
+    """)
+    return bugs
+
+
+def close_modal(page):
+    try:
+        btn = page.locator("button:has-text('Close'), button:has-text('Закрыть'), .modal-close").first
+        if btn.is_visible(timeout=500):
+            btn.click()
+            page.wait_for_timeout(500)
+            return
+    except Exception:
+        pass
+    try:
+        page.keyboard.press("Escape")
+        page.wait_for_timeout(500)
+    except Exception:
+        pass
+
+
+def run_deep_scans(page, shot_dir, api_key):
+    bugs = []
+
+    # Initial screenshot
+    shot_path = shot_dir / "Connectors_1_initial.png"
+    page.screenshot(path=str(shot_path), full_page=False)
+    bugs.extend(ask_claude_vision(shot_path.read_bytes(), api_key, "Connectors: начальное состояние"))
+
+    # Scroll down to see all connectors
+    page.evaluate("""
+        var el = document.querySelector('.content-area') ||
+                 document.querySelector('main') || document.scrollingElement;
+        if (el) el.scrollTop = 500;
+    """)
+    page.wait_for_timeout(600)
+    shot_path = shot_dir / "Connectors_2_scrolled.png"
+    page.screenshot(path=str(shot_path), full_page=False)
+    bugs.extend(ask_claude_vision(shot_path.read_bytes(), api_key, "Connectors: список коннекторов (прокрутка вниз)"))
+
+    # Reset scroll
+    page.evaluate("""
+        var el = document.querySelector('.content-area') ||
+                 document.querySelector('main') || document.scrollingElement;
+        if (el) el.scrollTop = 0;
+    """)
+    page.wait_for_timeout(400)
+
+    # Click each Deep Scan button
+    deep_btns = page.locator("button:has-text('Deep Scan')").all()
+    total = len(deep_btns)
+
+    for idx in range(total):
+        btns = page.locator("button:has-text('Deep Scan')").all()
+        if idx >= len(btns):
+            break
+        btn = btns[idx]
+        btn_id = btn.get_attribute("id") or ""
+        label = btn_id.replace("cb-d-", "").replace("_", " ").title() if "cb-d-" in btn_id else f"#{idx+1}"
+
+        try:
+            if not btn.is_visible(timeout=500):
+                btn.scroll_into_view_if_needed()
+                page.wait_for_timeout(300)
+            btn.scroll_into_view_if_needed()
+            page.wait_for_timeout(300)
+            btn.click()
+            page.wait_for_timeout(1000)
+
+            # Screenshot modal
+            shot_path = shot_dir / f"Connectors_deep_{idx+1}_{label.replace(' ', '_')}_modal.png"
+            page.screenshot(path=str(shot_path), full_page=False)
+            bugs.extend(ask_claude_vision(shot_path.read_bytes(), api_key,
+                         f"Connectors: Deep Scan '{label}' — модал открыт"))
+
+            # Wait for completion (max 10s)
+            for _ in range(20):
+                page.wait_for_timeout(500)
+                try:
+                    if page.locator("text=Completed").is_visible(timeout=100):
+                        break
+                    if page.locator("text=Error").is_visible(timeout=100):
+                        break
+                except Exception:
+                    pass
+
+            # Screenshot result
+            shot_path = shot_dir / f"Connectors_deep_{idx+1}_{label.replace(' ', '_')}_result.png"
+            page.screenshot(path=str(shot_path), full_page=False)
+            bugs.extend(ask_claude_vision(shot_path.read_bytes(), api_key,
+                         f"Connectors: Deep Scan '{label}' — результат"))
+
+            close_modal(page)
+            page.wait_for_timeout(800)
+
+        except Exception as e:
+            bugs.append({"severity": "warning",
+                         "description": f"Deep Scan '{label}': ошибка — {e}"})
+
+    return bugs
+
+
+def run(cfg):
     from core.base import TestResult
     from playwright.sync_api import sync_playwright
 
     bridge_port = cfg.get("bridge_port", 9300)
-    key_path = cfg.get("anthropic_key_path",
-                       "/Users/anvarbakiyev/Desktop/credentials/anthropic_api_key.txt")
+    key_path = cfg.get("anthropic_key_path", "/Users/anvarbakiyev/Desktop/credentials/anthropic_api_key.txt")
     screenshot_dir = Path(cfg.get("screenshot_dir", "/tmp/cc_visual_test"))
     screenshot_dir.mkdir(parents=True, exist_ok=True)
 
-    # Load API key
     try:
         api_key = Path(key_path).read_text().strip()
     except Exception as e:
         return TestResult("fail", f"Cannot read API key: {e}")
 
-    # Find CC port
     cc_port = find_cc_port()
     if not cc_port:
         return TestResult("fail", "CC not running")
 
-    # Check bridge
     try:
         urllib.request.urlopen(f"http://127.0.0.1:{bridge_port}/api/dronor_health", timeout=3)
     except Exception:
-        return TestResult("fail", f"Bridge server not running on port {bridge_port}")
+        return TestResult("fail", f"Bridge not running on port {bridge_port}")
 
-    all_bugs = []    # {section, after_click, severity, description}
+    all_bugs = []
     sections_tested = 0
     api_errors = 0
 
     with sync_playwright() as pw:
         browser = pw.chromium.launch(headless=True)
         page = browser.new_page(viewport={"width": 1280, "height": 900})
-
-        # Inject bridge shim
-        page.add_init_script(path=f"/Users/anvarbakiyev/dronor/apps/pywebview_shim.js")
         page.goto(f"http://127.0.0.1:{cc_port}/cc_ui.html", wait_until="domcontentloaded")
-        page.wait_for_timeout(1500)
+        page.wait_for_timeout(3000)
 
         sections_to_test = cfg.get("sections", [s["nav"] for s in SECTIONS])
 
@@ -170,119 +260,60 @@ def run(cfg: dict):
             if nav_name not in sections_to_test:
                 continue
 
-            # Navigate to section
             try:
                 page.locator(".nav-item", has_text=nav_name).first.click()
-                page.wait_for_timeout(1500)
+                page.wait_for_timeout(5000)
             except Exception as e:
-                all_bugs.append({
-                    "section": nav_name,
-                    "after_click": None,
-                    "severity": "warning",
-                    "description": f"Не удалось открыть секцию '{nav_name}': {e}"
-                })
+                all_bugs.append({"section": nav_name, "severity": "warning",
+                                  "description": f"Не удалось открыть секцию: {e}"})
                 continue
 
-            # Screenshot of section
-            shot_path = screenshot_dir / f"{nav_name.replace(' ', '_')}_load.png"
-            page.screenshot(path=str(shot_path), full_page=False)
-            image_bytes = shot_path.read_bytes()
+            sections_tested += 1
+            prefix = nav_name.replace(" ", "_")
 
-            context = f"Секция '{nav_name}' после загрузки"
-            bugs = ask_claude_vision(image_bytes, api_key, context)
+            if section["mode"] == "deep_scan_all":
+                bugs = run_deep_scans(page, screenshot_dir, api_key)
+            else:
+                bugs = scroll_and_screenshot(page, screenshot_dir, prefix, api_key, nav_name)
 
             for bug in bugs:
                 if "Vision API error" in bug.get("description", ""):
                     api_errors += 1
-                all_bugs.append({
-                    "section": nav_name,
-                    "after_click": None,
-                    **bug
-                })
-
-            sections_tested += 1
-
-            # Click buttons and screenshot after each
-            for btn_text in section["click_btns"]:
-                try:
-                    page.click(f"text={btn_text}", timeout=3000)
-                    page.wait_for_timeout(2500)  # Wait for async response
-
-                    shot_path = screenshot_dir / f"{nav_name.replace(' ', '_')}_after_{btn_text.replace(' ', '_')}.png"
-                    page.screenshot(path=str(shot_path), full_page=False)
-                    image_bytes = shot_path.read_bytes()
-
-                    context = f"Секция '{nav_name}' после нажатия кнопки '{btn_text}'"
-                    bugs = ask_claude_vision(image_bytes, api_key, context)
-
-                    for bug in bugs:
-                        if "Vision API error" in bug.get("description", ""):
-                            api_errors += 1
-                        all_bugs.append({
-                            "section": nav_name,
-                            "after_click": btn_text,
-                            **bug
-                        })
-
-                    # Close any modal that might have opened
-                    try:
-                        page.keyboard.press("Escape")
-                        page.wait_for_timeout(300)
-                    except Exception:
-                        pass
-
-                except Exception as e:
-                    all_bugs.append({
-                        "section": nav_name,
-                        "after_click": btn_text,
-                        "severity": "warning",
-                        "description": f"Кнопка '{btn_text}' недоступна или вызвала JS-ошибку: {e}"
-                    })
+                all_bugs.append({"section": nav_name, **bug})
 
         browser.close()
 
-    # Build report
     critical = [b for b in all_bugs if b.get("severity") == "critical"]
     warnings  = [b for b in all_bugs if b.get("severity") == "warning"]
     infos     = [b for b in all_bugs if b.get("severity") == "info"]
 
-    detail_lines = []
+    lines = []
     if critical:
-        detail_lines.append(f"CRITICAL ({len(critical)}):")
+        lines.append(f"CRITICAL ({len(critical)}):")
         for b in critical:
-            loc = f"{b['section']}" + (f" → {b['after_click']}" if b.get('after_click') else "")
-            detail_lines.append(f"  ✗ [{loc}] {b['description']}")
+            lines.append(f"  \u2717 [{b['section']}] {b['description']}")
     if warnings:
-        detail_lines.append(f"WARNINGS ({len(warnings)}):")
+        lines.append(f"WARNINGS ({len(warnings)}):")
         for b in warnings:
-            loc = f"{b['section']}" + (f" → {b['after_click']}" if b.get('after_click') else "")
-            detail_lines.append(f"  ⚠ [{loc}] {b['description']}")
+            lines.append(f"  \u26a0 [{b['section']}] {b['description']}")
     if infos:
-        detail_lines.append(f"INFO ({len(infos)}):")
+        lines.append(f"INFO ({len(infos)}):")
         for b in infos:
-            loc = f"{b['section']}" + (f" → {b['after_click']}" if b.get('after_click') else "")
-            detail_lines.append(f"  · [{loc}] {b['description']}")
+            lines.append(f"  \u00b7 [{b['section']}] {b['description']}")
 
-    detail_lines.append(f"\nTested: {sections_tested} sections | Screenshots: {screenshot_dir}")
+    lines.append(f"\nTested: {sections_tested} sections | Screenshots: {screenshot_dir}")
     if api_errors:
-        detail_lines.append(f"Vision API errors: {api_errors} (check key or network)")
+        lines.append(f"Vision API errors: {api_errors}")
 
-    detail = "\n".join(detail_lines)
-    total_bugs = len(critical) + len(warnings)
+    detail = "\n".join(lines)
+    msg = f"Visual test v2: {len(critical)} critical, {len(warnings)} warnings in {sections_tested} sections"
 
     if critical:
         status = "fail"
-        summary = f"Visual test: {len(critical)} critical, {len(warnings)} warnings in {sections_tested} sections"
     elif warnings:
         status = "warn"
-        summary = f"Visual test: {len(warnings)} warnings in {sections_tested} sections"
     else:
         status = "pass"
-        summary = f"Visual test: no bugs found in {sections_tested} sections"
 
-    return TestResult(
-        status,
-        summary,
-        detail=detail,
-        data={"critical": len(critical), "warnings": len(warnings), "sections_tested": sections_tested}
-    )
+    return TestResult(status, msg, detail=detail,
+                      data={"critical": len(critical), "warnings": len(warnings), "sections_tested": sections_tested})
