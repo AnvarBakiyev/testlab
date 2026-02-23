@@ -29,6 +29,11 @@ r = conn.execute("MATCH (c:Communication) RETURN count(c) AS cnt")
 data["comms"] = r.get_next()[0] if r.has_next() else 0
 r = conn.execute("MATCH (p:Person) WITH p.name AS n, count(*) AS cnt WHERE cnt > 1 RETURN count(*)")
 data["name_dupes"] = r.get_next()[0] if r.has_next() else 0
+# DRO-21: orphan nodes checks
+r = conn.execute("MATCH (p:Person) WHERE NOT EXISTS {{ MATCH (p)-[:KNOWS]-() }} AND NOT EXISTS {{ MATCH (p)-[:WORKS_AT]-() }} RETURN count(p)")
+data["orphan_persons"] = r.get_next()[0] if r.has_next() else 0
+r = conn.execute("MATCH (o:Organization) WHERE NOT EXISTS {{ MATCH ()-[:WORKS_AT]->(o) }} RETURN count(o)")
+data["orphan_orgs"] = r.get_next()[0] if r.has_next() else 0
 print(json.dumps(data), flush=True)
 sys.stdout.flush()
 os._exit(0)
@@ -76,6 +81,9 @@ def run(config: dict) -> TestResult:
             detail=stdout[:300]
         )
 
+    max_orphan_persons = config.get("max_orphan_persons", 50)
+    max_orphan_orgs = config.get("max_orphan_orgs", 20)
+
     issues = []
     if d["persons"] < min_persons:
         issues.append(f"Person: {d['persons']} < {min_persons}")
@@ -83,9 +91,14 @@ def run(config: dict) -> TestResult:
         issues.append(f"Org: {d['orgs']} < {min_orgs}")
     if d["name_dupes"] > 0:
         issues.append(f"Дублей по имени: {d['name_dupes']}")
+    if d.get("orphan_persons", 0) > max_orphan_persons:
+        issues.append(f"Orphan persons: {d['orphan_persons']} > {max_orphan_persons}")
+    if d.get("orphan_orgs", 0) > max_orphan_orgs:
+        issues.append(f"Orphan orgs: {d['orphan_orgs']} > {max_orphan_orgs}")
 
     msg = (f"Person: {d['persons']} | Org: {d['orgs']} | "
-           f"Comm: {d['comms']} | Name-дублей: {d['name_dupes']}")
+           f"Comm: {d['comms']} | Name-дублей: {d['name_dupes']} | "
+           f"Orphan persons: {d.get('orphan_persons', '?')}, orgs: {d.get('orphan_orgs', '?')}")
 
     if issues:
         return TestResult(status="warn", msg=msg, detail=" | ".join(issues))
