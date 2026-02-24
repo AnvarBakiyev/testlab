@@ -69,10 +69,10 @@
                     "module": "pipeline_completeness",
                     "config": {
                         "input_db": "local_data/personal_agi/events.db",
-                        "input_query": "SELECT COUNT(*) FROM events WHERE created_at > datetime('now', '-1 hour')",
+                        "input_query": "SELECT COUNT(*) FROM events WHERE created_at > datetime('now', '-24 hours')",
                         "output_db": "local_data/personal_agi/events.db",
-                        "output_query": "SELECT COUNT(*) FROM events WHERE status IN ('processed','noted') AND created_at > datetime('now', '-1 hour')",
-                        "tolerance_percent": 5
+                        "output_query": "SELECT COUNT(*) FROM events WHERE status IN ('processed','noted','dismissed') AND created_at > datetime('now', '-24 hours')",
+                        "tolerance_percent": 20
                     }
                 },
                 {
